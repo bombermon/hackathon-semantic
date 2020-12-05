@@ -1,6 +1,6 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 from fake_useragent import UserAgent
-
+import re
 headers_dict = {}
 
 names = ['Q170581', 'Q516515', 'Q766866', 'Q24313', 'Q529294', 'Q355522', 'Q380900', 'Q22686', 'Q24313', 'Q11153', 'Q11142', 'Q11124']
@@ -20,5 +20,7 @@ for i in names:
     results = sparql.query().convert()
     print(results)
     for j in range(0, len(results['results']['bindings'])):
-
-        print(results['results']['bindings'][j]['itemLabel']['value'])
+        main_elem = results['results']['bindings'][j]['item']['value']
+        result = re.split('/', main_elem)[-1]
+        headers_dict[i] = result
+print(headers_dict)
