@@ -19,8 +19,9 @@ for i in names:
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
     print(results)
+    headers_dict[i] = []
     for j in range(0, len(results['results']['bindings'])):
         main_elem = results['results']['bindings'][j]['item']['value']
         result = re.split('/', main_elem)[-1]
-        headers_dict[i] = result
+        headers_dict[i].append(result)
 print(headers_dict)

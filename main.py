@@ -24,7 +24,7 @@ def page_open_body(name):
 wd_url = []
 
 
-main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States")
+main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_1900")
 pattern = re.compile(r'href="/wiki/(.*?)"')
 searcher = re.findall(pattern, main_elem)
 
@@ -52,32 +52,61 @@ for j in href_list:
 print(wd_url)
 
 
-
-
-
-'''
-sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
-sparql.setQuery("""
-    {
-    "batchcomplete": "",
-    "query": {
-        "normalized": [
-            {
-                "from": "%s",
-                "to": "%s"
+headers_dict = {}
+names = []
+for i in wd_url:
+    try:
+        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+        sparql.setQuery("""
+            SELECT ?inception WHERE {
+              wd:%s wdt:P31 ?inception
             }
-        ],
-        "pages": {
-            "-1": {
-                "ns": 0,
-                "title": "%s",
-                "missing": ""
-            }
-        }
-    }
-}
-""" % 'Federal_government_of_the_United_States')
-sparql.setReturnFormat(JSON)
-results = sparql.query().convert()
-print(results)
-'''
+        """ % i)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+        humanity = results['results']['bindings'][0]['inception']['value']
+
+        if humanity == 'http://www.wikidata.org/entity/Q5':
+            print('УРА МЕШОК С КОСТЯМИ КОЖАНЫЙ %s' % i)
+            names.append(i)
+            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+            sparql.setQuery("""
+                        SELECT ?inception WHERE {
+                          wd:%s wdt:P1559 ?inception
+                        }
+                    """ % i)
+            sparql.setReturnFormat(JSON)
+            results = sparql.query().convert()
+            print(results['results']['bindings'][0]['inception']['value'])
+
+            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+            sparql.setQuery("""
+                                        SELECT ?item ?itemLabel 
+                                        WHERE 
+                                        {
+                                          wd:%s wdt:P39 ?item.
+                                          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+                                        }
+                                    """ % i)
+            sparql.setReturnFormat(JSON)
+            results = sparql.query().convert()
+            print(results)
+            headers_dict[i] = []
+            for j in range(0, len(results['results']['bindings'])):
+                main_elem = results['results']['bindings'][j]['item']['value']
+                result = re.split('/', main_elem)[-1]
+                headers_dict[i].append(result)
+        else:
+            print('ЭТО НЕ ХУЙНЯ НО И НЕ МЕШОК %s' % i)
+
+    except IndexError:
+        print('Это хуйня ' + i)
+
+
+
+
+print(headers_dict)
+
+
+
+
