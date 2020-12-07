@@ -4,23 +4,27 @@ import re
 from SPARQLWrapper import SPARQLWrapper, JSON
 from fake_useragent import UserAgent
 import csv
-
+import datefinder
 '''
 Берем значит ссылку и через семантик веб анализируем человек это или не человек имя это или не имя 
 '''
 
 def save_data(file_name, data):
+
     table_rows = []
     temp_row = {"person": '', "position": '', "start_precision": '', "start": '', "end_precision": '', "end": ''}
     for i in data.keys():
-        current_row = temp_row
-        current_row["person"] = "https://www.wikidata.org/wiki/" + i
-        current_row["position"] = "https://www.wikidata.org/wiki/" + data[i][0]
-        current_row["start_precision"] = data[i][4]
-        current_row["start"] = data[i][2]
-        current_row["end_precision"] = data[i][5]
-        current_row["end"] = data[i][3]
-        table_rows.append(current_row.copy())
+        try:
+            current_row = temp_row
+            current_row["person"] = "https://www.wikidata.org/wiki/" + i
+            current_row["position"] = "https://www.wikidata.org/wiki/" + data[i][0]
+            current_row["start_precision"] = data[i][4]
+            current_row["start"] = data[i][2]
+            current_row["end_precision"] = data[i][5]
+            current_row["end"] = data[i][3]
+            table_rows.append(current_row.copy())
+        except:
+            None
     with open(file_name + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
         writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
         writer.writeheader()
@@ -72,104 +76,107 @@ def page_open_body(name):
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
 def get_dates_from_url(url, name):
-    def get_dates(page, pattern):
-        new = re.findall(pattern, str(page))
+    try:
+        def get_dates(page, pattern):
+            new = re.findall(pattern, str(page))
 
-        date = ''
-        date_list = []
-        state = False
-        for j in new:
-            for i in j:
-                if i == '<':
-                    state = True
-                if i == '>':
-                    state = False
-                if i == '<':
-                    state = True
-                if i == '>':
-                    state = False
-                if i == '[':
-                    state = True
-                if i == ']':
-                    state = False
-                if i == '(':
-                    state = True
-                if i == ')':
-                    state = False
-
-                if not state:
-                    if i != ']' and i != '>' and i != ')':
-                        date += i
-            date_list.append(date)
             date = ''
+            date_list = []
+            state = False
+            for j in new:
+                for i in j:
+                    if i == '<':
+                        state = True
+                    if i == '>':
+                        state = False
+                    if i == '<':
+                        state = True
+                    if i == '>':
+                        state = False
+                    if i == '[':
+                        state = True
+                    if i == ']':
+                        state = False
+                    if i == '(':
+                        state = True
+                    if i == ')':
+                        state = False
 
-        data_list_new = []
+                    if not state:
+                        if i != ']' and i != '>' and i != ')':
+                            date += i
+                date_list.append(date)
+                date = ''
 
-        for i in date_list:
-            new_elem = i.replace(u'\xa0', u' ')
-            data_list_new.append(new_elem)
+            data_list_new = []
 
-        return data_list_new
+            for i in date_list:
+                new_elem = i.replace(u'\xa0', u' ')
+                data_list_new.append(new_elem)
 
-    changer = page_open_body(url)
+            return data_list_new
 
-    soup = BeautifulSoup(changer)
-    page = soup.find('table', {'class': 'infobox vcard'})
+        changer = page_open_body(url)
 
-    data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % name)
-    data_list = get_dates(page, data_pattern)
+        soup = BeautifulSoup(changer)
+        page = soup.find('table', {'class': 'infobox vcard'})
 
-    if not data_list:
-        data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % name)
+        data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % name)
         data_list = get_dates(page, data_pattern)
 
-    temp_str = data_list[0]
-    temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
-    data_list = re.split('–', temp_str)
-    new_data = []
-    for k in data_list:
-        k = k.replace(' ', '')
+        if not data_list:
+            data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % name)
+            data_list = get_dates(page, data_pattern)
 
-        if k.isdigit() == False:
-            matches = datefinder.find_dates(k)
-            for match in matches:
-                new_str = str(match)
-                new_str = re.split(' ', new_str)
-                new_str[0] = new_str[0].replace('-', '.')
-                temper_list = new_str[0].split('.')
-                print(temper_list)
-                new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
+        temp_str = data_list[0]
+        temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
+        data_list = re.split('–', temp_str)
+        new_data = []
+        for k in data_list:
+            k = k.replace(' ', '')
 
-
-
-                new_data.append(new_str[0])
-        if k.isdigit():
-            new_data.append(k)
-
-    if len(new_data) == 1:
-        new_data.append('по наст. время')
-    if str(new_data[0]).isdigit():
-        new_data[0] = '1.01.' + new_data[0]
-        new_data.append('2') # СТАВИМ ВТОРОЙ УРОВЕНЬ
-
-    else:
-        new_data.append('0')
-
-
-    if new_data[1].isdigit():
-        new_data[1] = '1.01.' + new_data[1]
-        new_data.append('2')  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
-    else:
-        new_data.append('0')
+            if k.isdigit() == False:
+                matches = datefinder.find_dates(k)
+                for match in matches:
+                    new_str = str(match)
+                    new_str = re.split(' ', new_str)
+                    new_str[0] = new_str[0].replace('-', '.')
+                    temper_list = new_str[0].split('.')
+                    print(temper_list)
+                    new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
 
 
 
-    return new_data
+                    new_data.append(new_str[0])
+            if k.isdigit():
+                new_data.append(k)
+
+        if len(new_data) == 1:
+            new_data.append('по наст. время')
+        if str(new_data[0]).isdigit():
+            new_data[0] = '1.01.' + new_data[0]
+            new_data.append('2') # СТАВИМ ВТОРОЙ УРОВЕНЬ
+
+        else:
+            new_data.append('0')
 
 
+        if new_data[1].isdigit():
+            new_data[1] = '1.01.' + new_data[1]
+            new_data.append('2')  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
+        else:
+            new_data.append('0')
+
+
+
+        return new_data
+    except:
+        None
+
+'''
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
+wd_url = []
 for x in range(2005, 2007):
-    wd_url = []
 
     main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
     pattern = re.compile(r'href="/wiki/(.*?)"')
@@ -198,8 +205,8 @@ for x in range(2005, 2007):
             None
             print('не вышло..')
     print(wd_url)  # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
-
-
+'''
+wd_url = ['Q466135', 'Q2021', 'Q888987', 'Q879370', 'Q21067588', 'Q6624299', 'Q28445569', 'Q6621054', 'Q48352', 'Q2285706', 'Q262', 'Q57308', 'Q2914452', 'Q57613', 'Q182762', 'Q307857', 'Q182762', 'Q916', 'Q57313', 'Q846091', 'Q310815', 'Q20706562', 'Q962', 'Q206719', 'Q878169', 'Q29196', 'Q878169', 'Q963', 'Q193238', 'Q866725', 'Q965', 'Q57324', 'Q290004', 'Q434742', 'Q1434747', 'Q967', 'Q57343', 'Q19057827', 'Q1009', 'Q57272', 'Q19158914', 'Q433938', 'Q17051823', 'Q1011', 'Q107431', 'Q501713', 'Q57649', 'Q510438', 'Q929', 'Q57452', 'Q1969668', 'Q274641', 'Q2062793', 'Q657', 'Q57350', 'Q865070', 'Q344743', 'Q2035826', 'Q970', 'Q515602', 'Q3236550', 'Q311129', 'Q3236550', 'Q971', 'Q57418', 'Q878300']
 
 def get_title(id):
     try:
@@ -238,7 +245,7 @@ def get_subclass(id):
 
 
 def ruller_cheeck(position_name):
-    header_pattern = re.compile(r'head|ruler')
+    header_pattern = re.compile(r'head of state|ruler')
     match = re.match(header_pattern, position_name)
     if match:
         return True
@@ -316,12 +323,15 @@ headers_dict = {}
 
 new_list = []
 for i in head_dict:
-    url = get_wiki_url(i)
-    ans = get_dates_from_url(url, head_dict[i][1])
-    head_dict[i].append(ans[0])
-    head_dict[i].append(ans[1])
-    head_dict[i].append(ans[2])
-    head_dict[i].append(ans[3])
+    try:
+        url = get_wiki_url(i)
+        ans = get_dates_from_url(url, head_dict[i][1])
+        head_dict[i].append(ans[0])
+        head_dict[i].append(ans[1])
+        head_dict[i].append(ans[2])
+        head_dict[i].append(ans[3])
+    except:
+        None
 
 
 save_data("sample", head_dict)
