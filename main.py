@@ -10,7 +10,6 @@ import wikipedia
 '''
 
 
-
 def get_wiki_url(wikidata_id, lang='en', debug=False):
     import requests
     from requests import utils
@@ -56,7 +55,7 @@ def page_open_body(name):
 
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
-def get_dates_from_url(url):
+def get_dates_from_url(url, name):
     def get_dates(page, pattern):
         new = re.findall(pattern, str(page))
 
@@ -97,12 +96,12 @@ def get_dates_from_url(url):
     soup = BeautifulSoup(changer)
     page = soup.find('table', {'class': 'infobox vcard'})
 
-    data_pattern = re.compile(r'<tr>.*?office(.*?)</tr><tr>')
+    data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % name)
 
     data_list = get_dates(page, data_pattern)
 
     if not data_list:
-        data_pattern = re.compile(r'<tr>.*?eign(.*?)</tr><tr>')
+        data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % name)
         data_list = get_dates(page, data_pattern)
 
     return data_list
@@ -138,7 +137,7 @@ for j in href_list:
     except IndexError:
         None
         print('не вышло..')
-print(wd_url)   # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
+print(wd_url)  # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
 
 '''
 headers_dict = {}
@@ -190,6 +189,118 @@ for i in wd_url:
 
 print(headers_dict)
 '''
+
+
+def get_title(id):
+    try:
+        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+        sparql.setQuery("""
+                                                                    SELECT ?item ?itemLabel 
+                                                                    WHERE 
+                                                                    {
+                                                                      wd:%s wdt:P39 ?item.
+                                                                      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+                                                                    }
+                                                                """ % id)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+        return results
+    except:
+        return None
+
+
+def get_subclass(id):
+    try:
+        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+        sparql.setQuery("""
+                                                                        SELECT ?item ?itemLabel 
+                                                                        WHERE 
+                                                                        {
+                                                                          wd:%s wdt:P279 ?item.
+                                                                          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+                                                                        }
+                                                                    """ % id)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+        return results
+    except:
+        return
+
+
+def ruller_cheeck(position_name):
+    header_pattern = re.compile(r'head|ruler')
+    match = re.match(header_pattern, position_name)
+    if match:
+        return True
+    return False
+
+
+not_needed_positions = {}
+needed_positions = {}
+
+
+def get_position(id, step=0, name=False):
+    global checked_positions
+    if step == 0:
+        positions_held = get_title(id)
+        if positions_held == None:
+            return None
+        for i in positions_held['results']['bindings']:
+            current_position_link = i['item']['value']
+            current_position_id = re.split('/', current_position_link)[-1]
+            current_position_name = i['itemLabel']['value']
+            if needed_positions.get(current_position_id) or ruller_cheeck(current_position_name):
+                needed_positions[current_position_id] = True
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
+            if not_needed_positions.get(current_position_id):
+                return
+            current_position_subclass_id = get_position(current_position_id, step + 1)
+            if needed_positions.get(current_position_id) or current_position_subclass_id != None:
+                needed_positions[current_position_id] = True
+                checked_positions = {}
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
+            not_needed_positions[current_position_id] = True
+        return
+    else:
+        positions_held = get_subclass(id)
+        if positions_held == None:
+            return
+        for i in positions_held['results']['bindings']:
+            current_position_link = i['item']['value']
+            current_position_id = re.split('/', current_position_link)[-1]
+            current_position_name = i['itemLabel']['value']
+            if needed_positions.get(current_position_id) or ruller_cheeck(current_position_name):
+                needed_positions[current_position_id] = True
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
+            if not_needed_positions.get(current_position_id):
+                return
+            current_position_subclass_id = get_position(current_position_id, step + 1)
+            if needed_positions.get(current_position_id) or current_position_subclass_id != None:
+                needed_positions[current_position_id] = True
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
+            not_needed_positions[current_position_id] = True
+        return
+
+
+head_dict = {}
+for i in searcher:
+    print(get_position(i))
+    if get_position(i) is not None:
+        head_dict[i] = []
+        head_dict[i].append(get_position(i))
+        head_dict[i].append(get_position(i, name=True))
 
 headers_dict = {}
 for i in headers_dict:

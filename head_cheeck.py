@@ -52,7 +52,7 @@ def ruller_cheeck(position_name):
 not_needed_positions = {}
 needed_positions = {}
 
-def get_position(id ,step = 0):
+def get_position(id ,step = 0, name = False):
     global checked_positions
     if step == 0:
         positions_held = get_title(id)
@@ -64,14 +64,20 @@ def get_position(id ,step = 0):
             current_position_name = i['itemLabel']['value']
             if needed_positions.get(current_position_id) or ruller_cheeck(current_position_name):
                 needed_positions[current_position_id] = True
-                return current_position_id
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
             if not_needed_positions.get(current_position_id):
                 return
             current_position_subclass_id = get_position(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
                 checked_positions = {}
-                return current_position_id
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
             not_needed_positions[current_position_id] = True
         return
     else:
@@ -84,13 +90,19 @@ def get_position(id ,step = 0):
             current_position_name = i['itemLabel']['value']
             if needed_positions.get(current_position_id) or ruller_cheeck(current_position_name):
                 needed_positions[current_position_id] = True
-                return current_position_id
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
             if not_needed_positions.get(current_position_id):
                 return
             current_position_subclass_id = get_position(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
-                return current_position_id
+                if name == False:
+                    return current_position_id
+                else:
+                    return current_position_name
             not_needed_positions[current_position_id] = True
         return
 head_dict = {}
@@ -99,5 +111,6 @@ for i in searcher:
     if get_position(i) is not None:
         head_dict[i] = []
         head_dict[i].append(get_position(i))
+        head_dict[i].append(get_position(i, name=True))
 
 print(head_dict)
