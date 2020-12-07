@@ -10,6 +10,7 @@ import wikipedia
 '''
 
 
+
 def get_wiki_url(wikidata_id, lang='en', debug=False):
     import requests
     from requests import utils
