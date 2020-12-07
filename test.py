@@ -125,9 +125,8 @@ names = ['Q170581', 'Q516515', 'Q766866', 'Q24313', 'Q529294', 'Q355522', 'Q3809
 print(headers_dict)
 '''
 
-names = ['Q22686', 'Q7996', 'Q7747', 'Q185152']
+names = ['Q22686', 'Q7996', 'Q185152']
 headers_dict = {}
-names = ['Q7747']
 '''
 for i in names:
     headers_dict[i] = []
@@ -214,11 +213,28 @@ def get_subclass(id):
     results = sparql.query().convert()
     return results
 
+def check_subclass(id):
+    results = get_subclass(point)
+    current_list = []
+    print(results)
+    for k in results['results']['bindings']:
+        results = k['itemLabel']['value']
+        result_id = k['item']['value']
+        print(results)
+        current_title = re.split('/', result_id)[-1]
+        print(current_title)
+        match = re.match(header_pattern, results)
+        print(match)
+        if match:
+            headers_dict[i].append(point)
+            break
+        current_list.append(current_title)
 
 for i in names:
     try:
+        end_list = []
         headers_dict[i] = []
-        temp = 'Q7747'
+        temp = i
         results = get_title(temp)
         title_list = []
         for k in results['results']['bindings']:
@@ -227,33 +243,47 @@ for i in names:
             title_list.append(main_title)
         print(title_list)
         for point in title_list:
-            header_pattern = re.compile(r'head|ruler')
             found = False
 
+            all_title_list = []
             results = get_subclass(point)
             current_list = []
-            print(results)
             for k in results['results']['bindings']:
-                results = k['item']['value']
-                print(results)
-                current_title = re.split('/', results)[-1]
-                match = re.match(header_pattern, current_title)
-                if match:
-                    headers_dict[i].append(point)
-                    break
-                current_list.append(current_title)
+                current_title = k['itemLabel']['value']
+                all_title_list.append(current_title)
 
-            results = get_subclass(point)
-            current_list_second = []
-            for m in current_list:
-                results = m['item']['value']
-                current_title_second = re.split('/', results)[-1]
-                match = re.match(header_pattern, current_title_second)
+                result_id = k['item']['value']
+                result_id = re.split('/', result_id)[-1]
+                current_list.append(result_id)
+
+                for j in current_list:
+                    print(j)
+                    all_title_list = []
+                    results = get_subclass(j)
+                    current_list = []
+
+                    for z in results['results']['bindings']:
+                        current_title = k['itemLabel']['value']
+                        all_title_list.append(current_title)
+
+                        result_id = k['item']['value']
+                        result_id = re.split('/', result_id)[-1]
+                        current_list.append(result_id)
+
+
+
+            print(all_title_list)
+            for g in all_title_list:
+                header_pattern = re.compile(r'head|ruler')
+                match = re.match(header_pattern, g)
                 if match:
-                    headers_dict[i].append(point)
-                    break
+                    end_list.append(point)
+
             print('Конец цикла')
     except IndexError:
         None
+print(end_list)
+
 print(headers_dict)
+
 # print(final_headers_dict)
