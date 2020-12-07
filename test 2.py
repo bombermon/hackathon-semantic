@@ -114,6 +114,12 @@ def get_dates_from_url(url, name):
                 new_str = str(match)
                 new_str = re.split(' ', new_str)
                 new_str[0] = new_str[0].replace('-', '.')
+                temper_list = new_str[0].split('.')
+                print(temper_list)
+                new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
+
+
+
                 new_data.append(new_str[0])
         if k.isdigit():
             new_data.append(k)

@@ -3,12 +3,28 @@ import requests as req
 import re
 from SPARQLWrapper import SPARQLWrapper, JSON
 from fake_useragent import UserAgent
-import wikipedia
+import csv
 
 '''
 Берем значит ссылку и через семантик веб анализируем человек это или не человек имя это или не имя 
 '''
 
+def save_data(file_name, data):
+    table_rows = []
+    temp_row = {"person": '', "position": '', "start_precision": '', "start": '', "end_precision": '', "end": ''}
+    for i in data.keys():
+        current_row = temp_row
+        current_row["person"] = "https://www.wikidata.org/wiki/" + i
+        current_row["position"] = "https://www.wikidata.org/wiki/" + data[i][0]
+        current_row["start_precision"] = data[i][4]
+        current_row["start"] = data[i][2]
+        current_row["end_precision"] = data[i][5]
+        current_row["end"] = data[i][3]
+        table_rows.append(current_row.copy())
+    with open(file_name + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
+        writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
+        writer.writeheader()
+        writer.writerows(table_rows)
 
 def get_wiki_url(wikidata_id, lang='en', debug=False):
     import requests
@@ -76,10 +92,14 @@ def get_dates_from_url(url, name):
                     state = True
                 if i == ']':
                     state = False
+                if i == '(':
+                    state = True
+                if i == ')':
+                    state = False
+
                 if not state:
-                    if i != ']' and i != '>':
+                    if i != ']' and i != '>' and i != ')':
                         date += i
-                        temp = i
             date_list.append(date)
             date = ''
 
@@ -97,98 +117,88 @@ def get_dates_from_url(url, name):
     page = soup.find('table', {'class': 'infobox vcard'})
 
     data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % name)
-
     data_list = get_dates(page, data_pattern)
 
     if not data_list:
         data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % name)
         data_list = get_dates(page, data_pattern)
 
-    return data_list
+    temp_str = data_list[0]
+    temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
+    data_list = re.split('–', temp_str)
+    new_data = []
+    for k in data_list:
+        k = k.replace(' ', '')
+
+        if k.isdigit() == False:
+            matches = datefinder.find_dates(k)
+            for match in matches:
+                new_str = str(match)
+                new_str = re.split(' ', new_str)
+                new_str[0] = new_str[0].replace('-', '.')
+                temper_list = new_str[0].split('.')
+                print(temper_list)
+                new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
+
+
+
+                new_data.append(new_str[0])
+        if k.isdigit():
+            new_data.append(k)
+
+    if len(new_data) == 1:
+        new_data.append('по наст. время')
+    if str(new_data[0]).isdigit():
+        new_data[0] = '1.01.' + new_data[0]
+        new_data.append('2') # СТАВИМ ВТОРОЙ УРОВЕНЬ
+
+    else:
+        new_data.append('0')
+
+
+    if new_data[1].isdigit():
+        new_data[1] = '1.01.' + new_data[1]
+        new_data.append('2')  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
+    else:
+        new_data.append('0')
+
+
+
+    return new_data
 
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
+for x in range(2005, 2007):
+    wd_url = []
 
-wd_url = []
+    main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
+    pattern = re.compile(r'href="/wiki/(.*?)"')
+    searcher = re.findall(pattern, main_elem)
 
-main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_1900")
-pattern = re.compile(r'href="/wiki/(.*?)"')
-searcher = re.findall(pattern, main_elem)
+    new_searcher = []
+    for i in searcher:
+        match = re.search(r'[\.:]', i)
+        if not match:
+            new_searcher.append(i)
 
-new_searcher = []
-for i in searcher:
-    match = re.search(r'[\.:]', i)
-    if not match:
-        new_searcher.append(i)
+    href_list = new_searcher
+    print(len(href_list))
+    n = 0
+    for j in href_list:
+        n += 1
+        try:
+            new_url = "https://en.wikipedia.org/wiki/" + j
+            main_elem = page_open_body(new_url)
 
-href_list = new_searcher
-print(len(href_list))
-n = 0
-for j in href_list:
-    n += 1
-    try:
-        new_url = "https://en.wikipedia.org/wiki/" + j
-        main_elem = page_open_body(new_url)
+            pattern = re.compile(r'www\.wikidata\.org/wiki/Special:EntityPage/(.*?)"')
+            searcher = re.findall(pattern, main_elem)
+            wd_url.append(searcher[0])
+            print('страница %s закрыта' % n)
+        except IndexError:
+            None
+            print('не вышло..')
+    print(wd_url)  # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
 
-        pattern = re.compile(r'www\.wikidata\.org/wiki/Special:EntityPage/(.*?)"')
-        searcher = re.findall(pattern, main_elem)
-        wd_url.append(searcher[0])
-        print('страница %s закрыта' % n)
-    except IndexError:
-        None
-        print('не вышло..')
-print(wd_url)  # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
-
-'''
-headers_dict = {}
-names = []
-for i in wd_url:
-    try:
-        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
-        sparql.setQuery("""
-            SELECT ?inception WHERE {
-              wd:%s wdt:P31 ?inception
-            }
-        """ % i)
-        sparql.setReturnFormat(JSON)
-        results = sparql.query().convert()
-        humanity = results['results']['bindings'][0]['inception']['value']
-
-        if humanity == 'http://www.wikidata.org/entity/Q5':
-            names.append(i)
-            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
-            sparql.setQuery("""
-                        SELECT ?inception WHERE {
-                          wd:%s wdt:P1559 ?inception
-                        }
-                    """ % i)
-            sparql.setReturnFormat(JSON)
-            results = sparql.query().convert()
-            print(results['results']['bindings'][0]['inception']['value'])
-
-            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
-            sparql.setQuery("""
-                                        SELECT ?item ?itemLabel 
-                                        WHERE 
-                                        {
-                                          wd:%s wdt:P39 ?item.
-                                          SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-                                        }
-                                    """ % i)
-            sparql.setReturnFormat(JSON)
-            results = sparql.query().convert()
-            print(results)
-            headers_dict[i] = []
-            for j in range(0, len(results['results']['bindings'])):
-                main_elem = results['results']['bindings'][j]['item']['value']
-                result = re.split('/', main_elem)[-1]
-                headers_dict[i].append(result)
-
-    except IndexError:
-        None
-
-print(headers_dict)
-'''
 
 
 def get_title(id):
@@ -295,7 +305,7 @@ def get_position(id, step=0, name=False):
 
 
 head_dict = {}
-for i in searcher:
+for i in wd_url:
     print(get_position(i))
     if get_position(i) is not None:
         head_dict[i] = []
@@ -303,8 +313,15 @@ for i in searcher:
         head_dict[i].append(get_position(i, name=True))
 
 headers_dict = {}
-for i in headers_dict:
-    url = get_wiki_url(i)
-    ans = get_dates_from_url(url)
 
-print(ans)
+new_list = []
+for i in head_dict:
+    url = get_wiki_url(i)
+    ans = get_dates_from_url(url, head_dict[i][1])
+    head_dict[i].append(ans[0])
+    head_dict[i].append(ans[1])
+    head_dict[i].append(ans[2])
+    head_dict[i].append(ans[3])
+
+
+save_data("sample", head_dict)
