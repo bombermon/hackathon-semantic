@@ -138,8 +138,9 @@ for j in href_list:
     except IndexError:
         None
         print('не вышло..')
-print(wd_url)
+print(wd_url)   # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
 
+'''
 headers_dict = {}
 names = []
 for i in wd_url:
@@ -188,7 +189,9 @@ for i in wd_url:
         None
 
 print(headers_dict)
+'''
 
+headers_dict = {}
 for i in headers_dict:
     url = get_wiki_url(i)
     ans = get_dates_from_url(url)
