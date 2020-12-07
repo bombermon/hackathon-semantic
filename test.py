@@ -60,7 +60,7 @@ names = ['Q170581', 'Q516515', 'Q766866', 'Q24313', 'Q529294', 'Q355522', 'Q3809
 print(headers_dict)
 '''
 
-names = ['Q22686', 'Q7996']
+names = ['Q22686', 'Q7996', 'Q7747' , 'Q185152']
 headers_dict = {}
 '''
 for i in names:
@@ -119,4 +119,56 @@ for i in headers_dict:
         final_headers_dict[i] = headers_dict[i]
 '''
 
-print(final_headers_dict)
+for i in names:
+    try:
+        headers_dict[i] = []
+        temp = 'Q7747'
+        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+        sparql.setQuery("""
+                                                SELECT ?item ?itemLabel 
+                                                WHERE 
+                                                {
+                                                  wd:%s wdt:P39 ?item.
+                                                  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+                                                }
+                                            """ % temp)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+        title_list = []
+        for k in  results['results']['bindings']:
+            results = k['item']['value']
+            main_title = re.split('/', results)[-1]
+            title_list.append(main_title)
+        for l in title_list:
+            temp = l
+            for j in range(0,10):
+                header_pattern = re.compile(r'head|ruler')
+                found = False
+
+                sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+                sparql.setQuery("""
+                                                        SELECT ?item ?itemLabel 
+                                                        WHERE 
+                                                        {
+                                                          wd:%s wdt:P279 ?item.
+                                                          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+                                                        }
+                                                    """ % temp)
+                sparql.setReturnFormat(JSON)
+                results = sparql.query().convert()
+                for j in results['results']['bindings']:
+                    title = j['itemLabel']['value']
+                    print(title)
+                    match = re.match(header_pattern, title)
+                    print(match)
+                    if match:
+                        found = True
+                        break
+                if found:
+                    headers_dict[i].append(l)
+                    break
+                temp = re.split('/', results['results']['bindings'][0]['item']['value'])[-1]
+    except IndexError:
+        None
+print(headers_dict)
+# print(final_headers_dict)
