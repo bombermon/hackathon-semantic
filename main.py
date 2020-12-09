@@ -192,18 +192,27 @@ for x in range(1800, 2011, 30):
     print(len(href_list))
     n = 0
     for j in href_list:
-        n += 1
         try:
             new_url = "https://en.wikipedia.org/wiki/" + j
             main_elem = page_open_body(new_url)
-
             pattern = re.compile(r'www\.wikidata\.org/wiki/Special:EntityPage/(.*?)"')
             searcher = re.findall(pattern, main_elem)
-            wd_url.append(searcher[0])
-            print('страница %s закрыта' % n)
+            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+            sparql.setQuery("""
+                       SELECT ?inception WHERE {
+                         wd:%s wdt:P31 ?inception
+                       }
+                   """ % searcher[0])
+            sparql.setReturnFormat(JSON)
+            results = sparql.query().convert()
+            humanity = results['results']['bindings'][0]['inception']['value']
+
+            if humanity == 'http://www.wikidata.org/entity/Q5':
+                wd_url.append(searcher[0])
+                n += 1
+                print(wd_url)
         except IndexError:
             None
-            print('не вышло..')
     print(wd_url)  # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
 
 def get_title(id):
