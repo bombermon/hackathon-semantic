@@ -208,7 +208,8 @@ for x in range(1800, 2011, 30):
             results = sparql.query().convert()
             humanity = results['results']['bindings'][0]['inception']['value']
 
-            if humanity == 'http://www.wikidata.org/entity/Q5':
+            if humanity == 'http://www.wikidata.org/entity/Q5' and searcher[0] not in heads_of_goverment_set:
+                heads_of_goverment_set.add(searcher[0])
                 wd_url.append(searcher[0])
                 n += 1
                 print(wd_url)
