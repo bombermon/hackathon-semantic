@@ -22,4 +22,4 @@ def save_data(file_name, data):
         writer.writeheader()
         writer.writerows(table_rows)
 
-save_data("sample", table)
+save_data("sample", table)]

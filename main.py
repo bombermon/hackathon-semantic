@@ -176,6 +176,7 @@ def get_dates_from_url(url, name):
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
 wd_url = []
+heads_of_goverment_set = set()
 for x in range(1800, 2011, 30):
 
     main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
@@ -213,7 +214,6 @@ for x in range(1800, 2011, 30):
                 print(wd_url)
         except IndexError:
             None
-    print(wd_url)  # СПИСОК ССЫЛОК В ФОРМАТЕ Q*****
 
 def get_title(id):
     try:
