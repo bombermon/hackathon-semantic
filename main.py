@@ -176,6 +176,7 @@ def get_dates_from_url(url, name):
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
 wd_url = []
+heads_of_goverment_set = set()
 for x in range(1800, 2011, 30):
 
     main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
@@ -199,7 +200,9 @@ for x in range(1800, 2011, 30):
 
             pattern = re.compile(r'www\.wikidata\.org/wiki/Special:EntityPage/(.*?)"')
             searcher = re.findall(pattern, main_elem)
-            wd_url.append(searcher[0])
+            if searcher[0] not in heads_of_goverment_set:
+                heads_of_goverment_set.add(searcher[0])
+                wd_url.append(searcher[0])
             print('страница %s закрыта' % n)
         except IndexError:
             None
