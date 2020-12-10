@@ -217,6 +217,7 @@ for x in range(1600, 1601):
             None
 
 print('hello')
+
 def get_title(id):
     try:
         sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
@@ -233,6 +234,7 @@ def get_title(id):
         return results
     except:
         return None
+
 
 
 def get_subclass(id):
@@ -260,14 +262,13 @@ def ruller_cheeck(position_name):
         return True
     return False
 
-
 not_needed_positions = {}
 needed_positions = {}
 
-
-def get_position(id, step=0, name=False):
-    global checked_positions
+def get_positions_id_and_name_list(id, step=0):
     if step == 0:
+        ruler_positions_id_list = []
+        ruler_positions_name_list = []
         positions_held = get_title(id)
         if positions_held == None:
             return None
@@ -277,22 +278,22 @@ def get_position(id, step=0, name=False):
             current_position_name = i['itemLabel']['value']
             if needed_positions.get(current_position_id) or ruller_cheeck(current_position_name):
                 needed_positions[current_position_id] = True
-                if name == False:
-                    return current_position_id
-                else:
-                    return current_position_name
+                ruler_positions_id_list.append(current_position_id)
+                ruler_positions_name_list.append(current_position_name)
+                continue
             if not_needed_positions.get(current_position_id):
                 return
-            current_position_subclass_id = get_position(current_position_id, step + 1)
+            current_position_subclass_id = get_positions_id_and_name_list(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
-                checked_positions = {}
-                if name == False:
-                    return current_position_id
-                else:
-                    return current_position_name
+                ruler_positions_id_list.append(current_position_id)
+                ruler_positions_name_list.append(current_position_name)
+                continue
             not_needed_positions[current_position_id] = True
-        return
+        if len(ruler_positions_id_list) == 0:
+            return None, None
+        else:
+            return ruler_positions_id_list, ruler_positions_name_list
     else:
         positions_held = get_subclass(id)
         if positions_held == None:
@@ -303,30 +304,25 @@ def get_position(id, step=0, name=False):
             current_position_name = i['itemLabel']['value']
             if needed_positions.get(current_position_id) or ruller_cheeck(current_position_name):
                 needed_positions[current_position_id] = True
-                if name == False:
-                    return current_position_id
-                else:
-                    return current_position_name
+                return current_position_id
             if not_needed_positions.get(current_position_id):
                 return
-            current_position_subclass_id = get_position(current_position_id, step + 1)
+            current_position_subclass_id = get_positions_id_and_name_list(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
-                if name == False:
-                    return current_position_id
-                else:
-                    return current_position_name
+                return current_position_id
             not_needed_positions[current_position_id] = True
-        return
+        return None
 
 
 head_dict = {}
 for i in wd_url:
-    print(get_position(i))
-    if get_position(i) is not None:
+    positions_id_list, positions_name_list = get_positions_id_and_name_list(i)
+    print(positions_name_list)
+    if positions_id_list is not None:
         head_dict[i] = []
-        head_dict[i].append(get_position(i))
-        head_dict[i].append(get_position(i, name=True))
+        head_dict[i].append(positions_id_list)
+        head_dict[i].append(positions_name_list)
 
 headers_dict = {}
 
