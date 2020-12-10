@@ -177,7 +177,7 @@ def get_dates_from_url(url, name):
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
 wd_url = []
 heads_of_goverment_set = set()
-for x in range(1800, 2011, 30):
+for x in range(1600, 1601):
 
     main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
     pattern = re.compile(r'href="/wiki/(.*?)"')
@@ -330,15 +330,19 @@ for i in wd_url:
 
 headers_dict = {}
 
+
 new_list = []
 for i in head_dict:
     try:
+        print(head_dict)
         url = get_wiki_url(i)
         ans = get_dates_from_url(url, head_dict[i][1])
         head_dict[i].append(ans[0])
         head_dict[i].append(ans[1])
+        print(head_dict)
         head_dict[i].append(ans[2])
         head_dict[i].append(ans[3])
+        print(head_dict)
     except:
         None
 
