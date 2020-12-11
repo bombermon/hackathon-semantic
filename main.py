@@ -9,27 +9,6 @@ import datefinder
 Берем значит ссылку и через семантик веб анализируем человек это или не человек имя это или не имя 
 '''
 
-def save_data(file_name, data):
-
-    table_rows = []
-    temp_row = {"person": '', "position": '', "start_precision": '', "start": '', "end_precision": '', "end": ''}
-    for i in data.keys():
-        try:
-            current_row = temp_row
-            current_row["person"] = "https://www.wikidata.org/wiki/" + i
-            current_row["position"] = "https://www.wikidata.org/wiki/" + data[i][0]
-            current_row["start_precision"] = data[i][4]
-            current_row["start"] = data[i][2]
-            current_row["end_precision"] = data[i][5]
-            current_row["end"] = data[i][3]
-            table_rows.append(current_row.copy())
-        except:
-            None
-    with open(file_name + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
-        writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
-        writer.writeheader()
-        writer.writerows(table_rows)
-
 def get_wiki_url(wikidata_id, lang='en', debug=False):
     import requests
     from requests import utils
@@ -186,7 +165,7 @@ def get_dates_from_url(url, name, title):
 
                     if end_pos[0] == '-':
                         BC_state = True
-                        end_pos[1:]
+                        end_pos = end_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -215,7 +194,7 @@ def get_dates_from_url(url, name, title):
                     BC_state = False
                     if start_pos[0] == '-':
                         BC_state = True
-                        start_pos[1:]
+                        start_pos = start_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -242,7 +221,7 @@ def get_dates_from_url(url, name, title):
 
                     if end_pos[0] == '-':
                         BC_state = True
-                        end_pos[1:]
+                        end_pos = end_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -295,7 +274,7 @@ def get_dates_from_url(url, name, title):
             BC_state = False
             if start_pos[0] == '-':
                 BC_state = True
-                start_pos[1:]
+                start_pos = start_pos[1:]
             state_to_write = False
             new_word = ''
             for char in start_pos:
@@ -344,10 +323,46 @@ def get_dates_from_url(url, name, title):
                 if not data_list:
                     data_pattern = re.compile(r'eign(.*?)</tr><tr>')
                     data_list = get_dates(page, data_pattern)
-
+            is_BC = False
             temp_str = data_list[0]
+
+            pattern = re.compile(r'BC')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('BC', '')
+                is_BC = True
+            pattern = re.compile(r'BCE')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('BCE', '')
+                is_BC = True
+            pattern = re.compile(r'AC')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('AC', '')
+                is_BC = True
+            pattern = re.compile(r'AD')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('AD', '')
+            if is_BC:
+                pattern = re.compile(r'c\.')
+                match = re.findall(pattern, temp_str)
+                if match:
+                    temp_str = temp_str.replace('c.', '')
+
+
+
             temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
-            data_list = re.split('–', temp_str)
+            pattern = re.compile(r'–')  # РАЗНЫЕ СИМВОЛЫ, НЕ ТРОГАТЬ!!!!!
+            match = re.findall(pattern, temp_str)
+            if match:
+                data_list = re.split(pattern, temp_str)
+            else:
+                pattern = re.compile(r'-')  # РАЗНЫЕ СИМВОЛЫ, НЕ ТРОГАТЬ!!!!!
+                match = re.findall(pattern, temp_str)
+                if match:
+                    data_list = re.split(pattern, temp_str)
             new_data = [-1, -1, -1, -1]
             n = 0
             for k in data_list:
@@ -363,14 +378,16 @@ def get_dates_from_url(url, name, title):
                         temper_list = new_str[0].split('.')
 
                         new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
-
                         new_data[n] = new_str[0]
                 if k.isdigit():
                     new_data[n] = k
                 n += 2
 
             if str(new_data[0]).isdigit():
-                new_data[0] = '1.01.' + new_data[0]
+                if is_BC:
+                    new_data[0] = '-1.01.' + new_data[0]
+                else:
+                    new_data[0] = '1.01.' + new_data[0]
                 new_data[1] = '2'
             else:
                 new_data[1] = '0'
@@ -380,62 +397,27 @@ def get_dates_from_url(url, name, title):
                 new_data[3] = '0'
 
             if new_data[2].isdigit():
-                new_data[2] = '1.01.' + new_data[2]
+                if is_BC:
+                    new_data[2] = '-1.01.' + new_data[2]
+                else:
+                    new_data[2] = '1.01.' + new_data[2]
                 new_data[3] = '2'  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
             else:
                 new_data[3] = '0'
 
-            temp = new_data
-            new_data = []
-            new_data.append(temp)
+            for count in new_data:
+                if count == -1:
+                    new_data = None
+            if new_data != None:
+                temp = new_data
+                new_data = []
+                new_data.append(temp)
+            else:
+                return None
         return new_data
     except:
         None
 
-
-# ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
-wd_url = []
-heads_of_goverment_set = set()
-for x in range(1600, 1601):
-
-    main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
-    pattern = re.compile(r'href="/wiki/(.*?)"')
-    searcher = re.findall(pattern, main_elem)
-
-    new_searcher = []
-    for i in searcher:
-        match = re.search(r'[\.:]', i)
-        if not match:
-            new_searcher.append(i)
-
-    href_list = new_searcher
-    print(len(href_list))
-    n = 0
-    for j in href_list:
-        try:
-            new_url = "https://en.wikipedia.org/wiki/" + j
-            main_elem = page_open_body(new_url)
-            pattern = re.compile(r'www\.wikidata\.org/wiki/Special:EntityPage/(.*?)"')
-            searcher = re.findall(pattern, main_elem)
-            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
-            sparql.setQuery("""
-                       SELECT ?inception WHERE {
-                         wd:%s wdt:P31 ?inception
-                       }
-                   """ % searcher[0])
-            sparql.setReturnFormat(JSON)
-            results = sparql.query().convert()
-            humanity = results['results']['bindings'][0]['inception']['value']
-
-            if humanity == 'http://www.wikidata.org/entity/Q5' and searcher[0] not in heads_of_goverment_set:
-                heads_of_goverment_set.add(searcher[0])
-                wd_url.append(searcher[0])
-                n += 1
-                print(wd_url)
-        except IndexError:
-            None
-
-print('hello')
 
 def get_title(id):
     try:
@@ -533,22 +515,69 @@ def get_positions_id_and_name_list(id, step=0):
             not_needed_positions[current_position_id] = True
         return None
 
+# ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
+wd_url = []
+heads_of_goverment_set = set()
+for x in range(1600, 1601):
+
+    #main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
+    main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
+    pattern = re.compile(r'href="/wiki/(.*?)"')
+    searcher = re.findall(pattern, main_elem)
+
+    new_searcher = []
+    for i in searcher:
+        match = re.search(r'[\.:]', i)
+        if not match:
+            new_searcher.append(i)
+
+    href_list = new_searcher
+    print(len(href_list))
+    n = 0
+    for j in href_list:
+        try:
+            new_url = "https://en.wikipedia.org/wiki/" + j
+            main_elem = page_open_body(new_url)
+            pattern = re.compile(r'www\.wikidata\.org/wiki/Special:EntityPage/(.*?)"')
+            searcher = re.findall(pattern, main_elem)
+            sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+            sparql.setQuery("""
+                       SELECT ?inception WHERE {
+                         wd:%s wdt:P31 ?inception
+                       }
+                   """ % searcher[0])
+            sparql.setReturnFormat(JSON)
+            results = sparql.query().convert()
+            humanity = results['results']['bindings'][0]['inception']['value']
+
+            if humanity == 'http://www.wikidata.org/entity/Q5' and searcher[0] not in heads_of_goverment_set:
+                heads_of_goverment_set.add(searcher[0])
+                wd_url.append(searcher[0])
+                n += 1
+                print(wd_url)
+        except IndexError:
+            None
+
+print('hello')
+
+
 
 head_dict = {}
 for i in wd_url:
     positions_id_list, positions_name_list = get_positions_id_and_name_list(i)
-    print(positions_name_list)
+
     if positions_id_list is not None:
         head_dict[i] = []
         head_dict[i].append(positions_id_list)
         head_dict[i].append(positions_name_list)
 
-headers_dict = {}
+
+
 
 print(head_dict)
-print(wd_url)
-
-
+new_list = []
+table_rows = []
+temp_row = {"person": '', "position": '', "start_precision": '', "start": '', "end_precision": '', "end": ''}
 for i in head_dict:
     new_dict = {}
     ans = {}
@@ -557,9 +586,25 @@ for i in head_dict:
     for j in temp_dict:
         url = get_wiki_url(i)
         ans[temp_dict.index(j)] = get_dates_from_url(url, i, j)
+        if ans[temp_dict.index(j)] is None:
+            continue
     for k in range(0, len(temp_dict)):
         new_dict[head_dict[i][0][k]] = ans[k]
+        current_row = temp_row
+        current_row["person"] = "https://www.wikidata.org/wiki/" + i
+        current_row["position"] = "https://www.wikidata.org/wiki/" + head_dict[i][0][k]
+        try:
+            for l in ans[k]:
+                current_row["start_precision"] = l[1]
+                current_row["start"] = l[0]
+                current_row["end_precision"] = l[3]
+                current_row["end"] = l[2]
+                table_rows.append(current_row.copy())
+        except:
+            None
     print(new_dict)
 
-
-save_data("sample", head_dict)
+with open("Alt+F4_results" + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
+    writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
+    writer.writeheader()
+    writer.writerows(table_rows)
