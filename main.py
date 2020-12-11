@@ -326,7 +326,8 @@ def get_dates_from_url(url, name, title):
                         first_got = True
                         break
 
-        new_data = title_dict[title]
+        if title_dict != {}:
+            new_data = title_dict[title]
         if title_dict == {}:
 
             changer = page_open_body(url)

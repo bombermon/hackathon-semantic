@@ -311,7 +311,8 @@ def get_dates_from_url(url, name, title):
                         first_got = True
                         break
         print(title_dict)
-        new_data = title_dict[title]
+        if title_dict != {}:
+            new_data = title_dict[title]
         if title_dict == {}:
 
             changer = page_open_body(url)
@@ -325,6 +326,7 @@ def get_dates_from_url(url, name, title):
             if not data_list:
                 data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % title)
                 data_list = get_dates(page, data_pattern)
+                print(data_list)
                 if not data_list:
                     data_pattern = re.compile(r'eign(.*?)</tr><tr>')
                     data_list = get_dates(page, data_pattern)
@@ -383,7 +385,7 @@ def get_dates_from_url(url, name, title):
     except:
         None
 
-url = get_wiki_url('Q22686')
-ans = get_dates_from_url(url, 'Q22686', 'President of the United States')
+url = get_wiki_url('Q515704')
+ans = get_dates_from_url(url, 'Q515704', 'King of Thailand')
 
 print(ans)

@@ -1,4 +1,3 @@
-wd_url = ['Q725222', 'Q2840566', 'Q515704', 'Q10061', 'Q6650024', 'Q704451', 'Q3087774', 'Q349440', 'Q171977', 'Q484359', 'Q8597', 'Q907317', 'Q153586', 'Q7207', 'Q936976', 'Q150586', 'Q57206', 'Q57920', 'Q70705', 'Q62051', 'Q267331', 'Q551420', 'Q62160', 'Q91964', 'Q452580', 'Q59657', 'Q60746', 'Q544873', 'Q318091', 'Q695210', 'Q1871059', 'Q297483', 'Q702746', 'Q666499', 'Q118755', 'Q34464', 'Q171465', 'Q170395', 'Q52940', 'Q40647', 'Q170172', 'Q79972', 'Q52939', 'Q164062', 'Q166623', 'Q1898567', 'Q171349']
 
 from bs4 import BeautifulSoup
 import requests as req
@@ -328,9 +327,10 @@ def get_dates_from_url(url, name, title):
                         first_got = True
                         break
 
-        new_data = title_dict[title]
+        if title_dict != {}:
+            new_data = title_dict[title]
         if title_dict == {}:
-
+            print('Вход совершен')
             changer = page_open_body(url)
 
             soup = BeautifulSoup(changer)
@@ -396,8 +396,6 @@ def get_dates_from_url(url, name, title):
 
 
 
-print('hello')
-
 def get_title(id):
     try:
         sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
@@ -462,7 +460,7 @@ def get_positions_id_and_name_list(id, step=0):
                 ruler_positions_name_list.append(current_position_name)
                 continue
             if not_needed_positions.get(current_position_id):
-                return None, None
+                continue
             current_position_subclass_id = get_positions_id_and_name_list(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
@@ -494,38 +492,24 @@ def get_positions_id_and_name_list(id, step=0):
             not_needed_positions[current_position_id] = True
         return None
 
-wd_url = ['Q725222', 'Q2840566', 'Q515704', 'Q10061', 'Q6650024', 'Q704451', 'Q3087774', 'Q349440', 'Q171977', 'Q484359', 'Q8597', 'Q907317', 'Q153586', 'Q7207', 'Q936976', 'Q150586', 'Q57206', 'Q57920', 'Q70705', 'Q62051', 'Q267331', 'Q551420', 'Q62160', 'Q91964', 'Q452580', 'Q59657', 'Q60746', 'Q544873', 'Q318091', 'Q695210', 'Q1871059', 'Q297483', 'Q702746', 'Q666499', 'Q118755', 'Q34464', 'Q171465', 'Q170395', 'Q52940', 'Q40647', 'Q170172', 'Q79972', 'Q52939', 'Q164062', 'Q166623', 'Q1898567', 'Q171349']
 
-head_dict = {}
-for i in wd_url:
-    print(i)
-    positions_id_list, positions_name_list = get_positions_id_and_name_list(i)
-    print(positions_name_list)
-    if positions_id_list is not None:
-        head_dict[i] = []
-        head_dict[i].append(positions_id_list)
-        head_dict[i].append(positions_name_list)
+head_dict = {'Q7747': [['Q10962705'], ['President of Russia']], 'Q515704': [['Q27330121'], ['King of Thailand']], 'Q10061': [['Q268218'], ['Emperor of China']], 'Q349440': [['Q208233'], ['Emperor of Japan']], 'Q484359': [['Q22304810'], ['King of Joseon Dynasty']], 'Q8597': [['Q15390704'], ['Mughal emperor']], 'Q907317': [['Q56230659'], ['King of Ryukyu']], 'Q153586': [['Q1294765', 'Q18341329'], ['monarch of Norway', 'monarch of Denmark']], 'Q7207': [['Q12097', 'Q18810062'], ['king', 'monarch of England']], 'Q936976': [['Q3439798', 'Q29166132'], ['King of France and Navarre', 'king of Navarre']], 'Q150586': [['Q12097', 'Q181765'], ['king', 'Holy Roman Emperor']], 'Q57206': [['Q19827831', 'Q23011565'], ['Count Palatine of the Rhine', 'duke of Bavaria']], 'Q70705': [['Q20860025'], ['Prince-Archbishop']], 'Q62160': [['Q63375991', 'Q63871039'], ['Duke of Schleswig', 'Duke of Holstein']], 'Q452580': [['Q95688080'], ['Duke of Montferri']], 'Q544873': [['Q477406'], ['regent']], 'Q34464': [['Q835706', 'Q1542521', 'Q3847454', 'Q58631963', 'Q58637583', 'Q58800860'], ['Prince of Asturias', 'Governor-General of the Philippines', 'King of Spain', 'monarch of Aragon', 'monarch of Spain', 'Monarch of Portugal']], 'Q171465': [['Q15315411'], ['sultan of the Ottoman Empire']], 'Q52940': [['Q1268572', 'Q3273712'], ['monarch of Sweden', 'king of Poland']], 'Q170172': [['Q44356'], ['tsar']], 'Q79972': [['Q18810062', 'Q18810063', 'Q18810066'], ['monarch of England', 'monarch of Scotland', 'Monarch of Ireland']], 'Q52939': [['Q1268572'], ['monarch of Sweden']], 'Q164062': [['Q549449', 'Q66096255'], ['Prince of Orange', 'stadtholder of Holland']], 'Q171349': [['Q184299'], ['Shah']]}
 
-headers_dict = {}
-
-print(head_dict)
-print(wd_url)
 
 
 new_list = []
 for i in head_dict:
-    try:
-        print(head_dict)
+    new_dict = {}
+    ans = {}
+    temp_dict = head_dict[i][1]
+
+    for j in temp_dict:
         url = get_wiki_url(i)
-        ans = get_dates_from_url(url, head_dict[i][1])
-        head_dict[i].append(ans[0])
-        head_dict[i].append(ans[1])
-        print(head_dict)
-        head_dict[i].append(ans[2])
-        head_dict[i].append(ans[3])
-        print(head_dict)
-    except:
-        None
+        ans[temp_dict.index(j)] = get_dates_from_url(url, i, j)
+    for k in range(0, len(temp_dict)):
+        new_dict[head_dict[i][0][k]] = ans[k]
+    print(new_dict)
 
 
 save_data("sample", head_dict)
+
