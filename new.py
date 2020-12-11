@@ -134,10 +134,12 @@ def get_dates_from_url(url, name, title):
 
                     start_pos = results['results']['bindings'][i]['starttimeValue']['value']
                     start_pos = re.split('T', start_pos)[0]
+
                     BC_state = False
                     if start_pos[0] == '-':
                         BC_state = True
-                    
+                        start_pos[1:]
+
 
                     state_to_write = False
                     new_word = ''
@@ -152,7 +154,11 @@ def get_dates_from_url(url, name, title):
                     start_pos = list(reversed(start_pos.split('.')))
                     start_pos = '.'.join(start_pos)
 
-                    title_dict[Title_ID][number][0] = start_pos +
+                    if BC_state:
+                        title_dict[Title_ID][number][0] = '-' + start_pos
+                    else:
+                        title_dict[Title_ID][number][0] = start_pos
+
 
                     start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
                     title_dict[Title_ID][number][1] = str(11 - int(start_accuracy))
@@ -160,6 +166,10 @@ def get_dates_from_url(url, name, title):
                     end_pos = results['results']['bindings'][i]['endtimeValue']['value']
                     end_pos = re.split('T', end_pos)[0]
 
+                    if end_pos[0] == '-':
+                        BC_state = True
+                        end_pos[1:]
+
                     state_to_write = False
                     new_word = ''
                     for char in end_pos:
@@ -174,13 +184,21 @@ def get_dates_from_url(url, name, title):
                     end_pos = list(reversed(end_pos.split('.')))
                     end_pos = '.'.join(end_pos)
 
-                    title_dict[Title_ID][number][2] = end_pos
+                    if BC_state:
+                        title_dict[Title_ID][number][2] = '-' + end_pos
+                    else:
+                        title_dict[Title_ID][number][2] = end_pos
 
                     end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
                     title_dict[Title_ID][number][3] = str(11 - int(end_accuracy))
                 else:
                     start_pos = results['results']['bindings'][i]['starttimeValue']['value']
                     start_pos = re.split('T', start_pos)[0]
+
+                    BC_state = False
+                    if start_pos[0] == '-':
+                        BC_state = True
+                        start_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -194,14 +212,20 @@ def get_dates_from_url(url, name, title):
                     start_pos = start_pos.replace('-', '.')
                     start_pos = list(reversed(start_pos.split('.')))
                     start_pos = '.'.join(start_pos)
-
-                    title_dict[Title_ID][0][0] = start_pos
+                    if BC_state:
+                        title_dict[Title_ID][0][0] = '-' + start_pos
+                    else:
+                        title_dict[Title_ID][0][0] = start_pos
 
                     start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
                     title_dict[Title_ID][0][1] = str(11 - int(start_accuracy))
 
                     end_pos = results['results']['bindings'][i]['endtimeValue']['value']
                     end_pos = re.split('T', end_pos)[0]
+
+                    if end_pos[0] == '-':
+                        BC_state = True
+                        end_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -216,7 +240,10 @@ def get_dates_from_url(url, name, title):
                     end_pos = list(reversed(end_pos.split('.')))
                     end_pos = '.'.join(end_pos)
 
-                    title_dict[Title_ID][0][2] = end_pos
+                    if BC_state:
+                        title_dict[Title_ID][0][2] = '-' + end_pos
+                    else:
+                        title_dict[Title_ID][0][2] = end_pos
 
                     end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
                     title_dict[Title_ID][0][3] = str(11 - int(end_accuracy))
@@ -250,6 +277,10 @@ def get_dates_from_url(url, name, title):
             start_pos = results['results']['bindings'][i]['starttimeValue']['value']
             start_pos = re.split('T', start_pos)[0]
 
+            BC_state = False
+            if start_pos[0] == '-':
+                BC_state = True
+                start_pos[1:]
             state_to_write = False
             new_word = ''
             for char in start_pos:
@@ -263,13 +294,16 @@ def get_dates_from_url(url, name, title):
             start_pos = list(reversed(start_pos.split('.')))
             start_pos = '.'.join(start_pos)
 
-            if Title_ID in title_dict:
+            if Title_ID in title_dict and not BC_state:
                 for j in range(0, len(title_dict[Title_ID])):
                     print(title_dict[Title_ID][j])
                     if start_pos != title_dict[Title_ID][j][0]:
                         print('Вот что нам нужно! ', start_pos, ' а было - ', Title_ID)
                         title_dict[Title_ID].append([-1,-1,-1,-1])
-                        title_dict[Title_ID][-1][0] = start_pos
+                        if BC_state:
+                            title_dict[Title_ID][-1][0] = '-' + start_pos
+                        else:
+                            title_dict[Title_ID][-1][0] = start_pos
                         start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
                         title_dict[Title_ID][-1][1] = str(11 - int(start_accuracy))
                         title_dict[Title_ID][-1][2] = 'по наст. время'
@@ -337,5 +371,5 @@ def get_dates_from_url(url, name, title):
     except:
         None
 
-url = get_wiki_url('Q8409')
-ans = get_dates_from_url(url, 'Q8409', 'king of Macedon')
+url = get_wiki_url('Q7747')
+ans = get_dates_from_url(url, 'Q7747', 'President of Russia')
