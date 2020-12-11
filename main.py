@@ -75,7 +75,7 @@ def page_open_body(name):
 
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
-def get_dates_from_url(url, name):
+def get_dates_from_url(url, name, title):
     try:
         def get_dates(page, pattern):
             new = re.findall(pattern, str(page))
@@ -116,59 +116,277 @@ def get_dates_from_url(url, name):
 
             return data_list_new
 
-        changer = page_open_body(url)
+        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+        sparql.setQuery("""SELECT ?Title ?starttimeValue ?TitleLabel ?starttimePrecision ?endtimeValue ?endtimePrecision  WHERE {
+    wd:%s p:P39 ?TitleStatementNode.
+    ?TitleStatementNode ps:P39 ?Title.
+    ?TitleStatementNode pqv:P580 ?starttimenode.
+    ?TitleStatementNode pqv:P582 ?endtimenode.
+    ?starttimenode wikibase:timeValue         ?starttimeValue.
+    ?starttimenode wikibase:timePrecision     ?starttimePrecision.
+    ?endtimenode wikibase:timeValue         ?endtimeValue.
+    ?endtimenode wikibase:timePrecision     ?endtimePrecision.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 
-        soup = BeautifulSoup(changer)
-        page = soup.find('table', {'class': 'infobox vcard'})
 
-        data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % name)
-        data_list = get_dates(page, data_pattern)
+    }""" % name)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
 
-        if not data_list:
-            data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % name)
+        title_dict = {}
+        counter_dict = {}
+        for i in range(0, len(results['results']['bindings'])):
+            state_repeat = False
+
+            Title_ID = results['results']['bindings'][i]['TitleLabel']['value']
+            Title_ID = re.split('/', Title_ID)[-1]
+            if Title_ID == title:
+                if Title_ID in title_dict:
+                    state_repeat = True
+                    counter_dict[Title_ID] = counter_dict[Title_ID] + 1
+                    title_dict[Title_ID].append([-1, -1, -1, -1])
+                else:
+                    counter_dict[Title_ID] = 1
+                    title_dict[Title_ID] = []
+                    title_dict[Title_ID].append([-1, -1, -1, -1])
+                if state_repeat:
+                    number = counter_dict[Title_ID] - 1
+
+                    start_pos = results['results']['bindings'][i]['starttimeValue']['value']
+                    start_pos = re.split('T', start_pos)[0]
+
+                    BC_state = False
+                    if start_pos[0] == '-':
+                        BC_state = True
+                        start_pos[1:]
+
+                    state_to_write = False
+                    new_word = ''
+                    for char in start_pos:
+                        if char != '0':
+                            state_to_write = True
+                        if state_to_write:
+                            new_word += char
+                    start_pos = new_word
+
+                    start_pos = start_pos.replace('-', '.')
+                    start_pos = list(reversed(start_pos.split('.')))
+                    start_pos = '.'.join(start_pos)
+
+                    if BC_state:
+                        title_dict[Title_ID][number][0] = '-' + start_pos
+                    else:
+                        title_dict[Title_ID][number][0] = start_pos
+
+                    start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
+                    title_dict[Title_ID][number][1] = str(11 - int(start_accuracy))
+
+                    end_pos = results['results']['bindings'][i]['endtimeValue']['value']
+                    end_pos = re.split('T', end_pos)[0]
+
+                    if end_pos[0] == '-':
+                        BC_state = True
+                        end_pos[1:]
+
+                    state_to_write = False
+                    new_word = ''
+                    for char in end_pos:
+                        if char != '0':
+                            state_to_write = True
+                        if state_to_write:
+                            new_word += char
+                    end_pos = new_word
+
+                    end_pos = end_pos.replace('-', '.')
+                    end_pos = list(reversed(end_pos.split('.')))
+                    end_pos = '.'.join(end_pos)
+
+                    if BC_state:
+                        title_dict[Title_ID][number][2] = '-' + end_pos
+                    else:
+                        title_dict[Title_ID][number][2] = end_pos
+
+                    end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
+                    title_dict[Title_ID][number][3] = str(11 - int(end_accuracy))
+                else:
+                    start_pos = results['results']['bindings'][i]['starttimeValue']['value']
+                    start_pos = re.split('T', start_pos)[0]
+
+                    BC_state = False
+                    if start_pos[0] == '-':
+                        BC_state = True
+                        start_pos[1:]
+
+                    state_to_write = False
+                    new_word = ''
+                    for char in start_pos:
+                        if char != '0':
+                            state_to_write = True
+                        if state_to_write:
+                            new_word += char
+                    start_pos = new_word
+
+                    start_pos = start_pos.replace('-', '.')
+                    start_pos = list(reversed(start_pos.split('.')))
+                    start_pos = '.'.join(start_pos)
+                    if BC_state:
+                        title_dict[Title_ID][0][0] = '-' + start_pos
+                    else:
+                        title_dict[Title_ID][0][0] = start_pos
+
+                    start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
+                    title_dict[Title_ID][0][1] = str(11 - int(start_accuracy))
+
+                    end_pos = results['results']['bindings'][i]['endtimeValue']['value']
+                    end_pos = re.split('T', end_pos)[0]
+
+                    if end_pos[0] == '-':
+                        BC_state = True
+                        end_pos[1:]
+
+                    state_to_write = False
+                    new_word = ''
+                    for char in end_pos:
+                        if char != '0':
+                            state_to_write = True
+                        if state_to_write:
+                            new_word += char
+                    end_pos = new_word
+
+                    end_pos = end_pos.replace('-', '.')
+                    end_pos = list(reversed(end_pos.split('.')))
+                    end_pos = '.'.join(end_pos)
+
+                    if BC_state:
+                        title_dict[Title_ID][0][2] = '-' + end_pos
+                    else:
+                        title_dict[Title_ID][0][2] = end_pos
+
+                    end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
+                    title_dict[Title_ID][0][3] = str(11 - int(end_accuracy))
+
+
+
+        # ПОЛУЧЕНИЕ ЗАПРОСА ДОЛЖНОСТЕЙ КОТОРЫЕ СЕЙЧАС ПРАВЯТ
+
+        sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
+        sparql.setQuery("""SELECT ?Title ?starttimeValue ?starttimePrecision ?TitleLabel ?endtimeValue ?endtimePrecision  WHERE {
+          wd:%s p:P39 ?TitleStatementNode.
+          ?TitleStatementNode ps:P39 ?Title.
+          ?TitleStatementNode pqv:P580 ?starttimenode.
+          ?starttimenode wikibase:timeValue         ?starttimeValue.
+          ?starttimenode wikibase:timePrecision     ?starttimePrecision.
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+
+
+        }""" % name)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+
+        first_got = False
+        for i in range(0, len(results['results']['bindings'])):
+            if first_got:
+                break
+            Title_ID = results['results']['bindings'][i]['TitleLabel']['value']
+            Title_ID = re.split('/', Title_ID)[-1]
+            start_pos = results['results']['bindings'][i]['starttimeValue']['value']
+            start_pos = re.split('T', start_pos)[0]
+
+            BC_state = False
+            if start_pos[0] == '-':
+                BC_state = True
+                start_pos[1:]
+            state_to_write = False
+            new_word = ''
+            for char in start_pos:
+                if char != '0':
+                    state_to_write = True
+                if state_to_write:
+                    new_word += char
+            start_pos = new_word
+
+            start_pos = start_pos.replace('-', '.')
+            start_pos = list(reversed(start_pos.split('.')))
+            start_pos = '.'.join(start_pos)
+
+            if Title_ID in title_dict and not BC_state:
+                for j in range(0, len(title_dict[Title_ID])):
+
+                    if start_pos != title_dict[Title_ID][j][0]:
+
+                        title_dict[Title_ID].append([-1, -1, -1, -1])
+                        if BC_state:
+                            title_dict[Title_ID][-1][0] = '-' + start_pos
+                        else:
+                            title_dict[Title_ID][-1][0] = start_pos
+                        start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
+                        title_dict[Title_ID][-1][1] = str(11 - int(start_accuracy))
+                        title_dict[Title_ID][-1][2] = 'по наст. время'
+                        title_dict[Title_ID][-1][3] = '0'
+                        first_got = True
+                        break
+
+        new_data = title_dict[title]
+        if title_dict == {}:
+
+            changer = page_open_body(url)
+
+            soup = BeautifulSoup(changer)
+            page = soup.find('table', {'class': 'infobox vcard'})
+
+            data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % title)
             data_list = get_dates(page, data_pattern)
 
-        temp_str = data_list[0]
-        temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
-        data_list = re.split('–', temp_str)
-        new_data = []
-        for k in data_list:
-            k = k.replace(' ', '')
+            if not data_list:
+                data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % title)
+                data_list = get_dates(page, data_pattern)
+                if not data_list:
+                    data_pattern = re.compile(r'eign(.*?)</tr><tr>')
+                    data_list = get_dates(page, data_pattern)
 
-            if k.isdigit() == False:
-                matches = datefinder.find_dates(k)
-                for match in matches:
-                    new_str = str(match)
-                    new_str = re.split(' ', new_str)
-                    new_str[0] = new_str[0].replace('-', '.')
-                    temper_list = new_str[0].split('.')
-                    print(temper_list)
-                    new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
+            temp_str = data_list[0]
+            temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
+            data_list = re.split('–', temp_str)
+            new_data = [-1, -1, -1, -1]
+            n = 0
+            for k in data_list:
+                k = k.replace(' ', '')
+                if n > 3:
+                    break
+                if k.isdigit() == False:
+                    matches = datefinder.find_dates(k)
+                    for match in matches:
+                        new_str = str(match)
+                        new_str = re.split(' ', new_str)
+                        new_str[0] = new_str[0].replace('-', '.')
+                        temper_list = new_str[0].split('.')
 
+                        new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
 
+                        new_data[n] = new_str[0]
+                if k.isdigit():
+                    new_data[n] = k
+                n += 2
 
-                    new_data.append(new_str[0])
-            if k.isdigit():
-                new_data.append(k)
+            if str(new_data[0]).isdigit():
+                new_data[0] = '1.01.' + new_data[0]
+                new_data[1] = '2'
+            else:
+                new_data[1] = '0'
 
-        if len(new_data) == 1:
-            new_data.append('по наст. время')
-        if str(new_data[0]).isdigit():
-            new_data[0] = '1.01.' + new_data[0]
-            new_data.append('2') # СТАВИМ ВТОРОЙ УРОВЕНЬ
+            if new_data[2] == -1:
+                new_data[2] = 'по наст. время'
+                new_data[3] = '0'
 
-        else:
-            new_data.append('0')
+            if new_data[2].isdigit():
+                new_data[2] = '1.01.' + new_data[2]
+                new_data[3] = '2'  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
+            else:
+                new_data[3] = '0'
 
-
-        if new_data[1].isdigit():
-            new_data[1] = '1.01.' + new_data[1]
-            new_data.append('2')  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
-        else:
-            new_data.append('0')
-
-
-
+            temp = new_data
+            new_data = []
+            new_data.append(temp)
         return new_data
     except:
         None
