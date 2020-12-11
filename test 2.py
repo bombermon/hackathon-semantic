@@ -97,7 +97,7 @@ def get_dates(page, pattern):
 
 title = 'king'
 
-url = 'https://en.wikipedia.org/wiki/Cotiso'
+url = 'https://en.wikipedia.org/wiki/Seleucus_VII_Philometor'
 changer = page_open_body(url)
 
 soup = BeautifulSoup(changer)

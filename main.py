@@ -288,6 +288,8 @@ def get_dates_from_url(url, name, title):
             start_pos = list(reversed(start_pos.split('.')))
             start_pos = '.'.join(start_pos)
 
+            # ПЕРЕДЕЛАТЬ НАДО!!!!!!
+
             if Title_ID in title_dict and not BC_state:
                 for j in range(0, len(title_dict[Title_ID])):
 
@@ -304,6 +306,9 @@ def get_dates_from_url(url, name, title):
                         title_dict[Title_ID][-1][3] = '0'
                         first_got = True
                         break
+
+            # ПЕРЕДЕЛАТЬ НАДО!!!!!!
+
 
         if title_dict != {}:
             new_data = title_dict[title]
@@ -406,7 +411,7 @@ def get_dates_from_url(url, name, title):
                 new_data[3] = '0'
 
             for count in new_data:
-                if count == -1:
+                if count == -1 or (is_BC and count == 'по наст. время'):
                     new_data = None
             if new_data != None:
                 temp = new_data
@@ -518,10 +523,10 @@ def get_positions_id_and_name_list(id, step=0):
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
 wd_url = []
 heads_of_goverment_set = set()
-for x in range(1600, 1601):
+for x in range(1900, 1911, 10):
 
-    #main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
-    main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
+    main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
+    #main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
     pattern = re.compile(r'href="/wiki/(.*?)"')
     searcher = re.findall(pattern, main_elem)
 

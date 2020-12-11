@@ -53,6 +53,7 @@ def page_open_body(name):
 
 
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
+# ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
 def get_dates_from_url(url, name, title):
     try:
         def get_dates(page, pattern):
@@ -105,12 +106,11 @@ def get_dates_from_url(url, name, title):
     ?endtimenode wikibase:timeValue         ?endtimeValue.
     ?endtimenode wikibase:timePrecision     ?endtimePrecision.
     SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-    
-    
+
+
     }""" % name)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-
 
         title_dict = {}
         counter_dict = {}
@@ -123,7 +123,6 @@ def get_dates_from_url(url, name, title):
                 if Title_ID in title_dict:
                     state_repeat = True
                     counter_dict[Title_ID] = counter_dict[Title_ID] + 1
-                    print('Повторное ID = %s ' % Title_ID)
                     title_dict[Title_ID].append([-1, -1, -1, -1])
                 else:
                     counter_dict[Title_ID] = 1
@@ -139,7 +138,6 @@ def get_dates_from_url(url, name, title):
                     if start_pos[0] == '-':
                         BC_state = True
                         start_pos[1:]
-
 
                     state_to_write = False
                     new_word = ''
@@ -159,7 +157,6 @@ def get_dates_from_url(url, name, title):
                     else:
                         title_dict[Title_ID][number][0] = start_pos
 
-
                     start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
                     title_dict[Title_ID][number][1] = str(11 - int(start_accuracy))
 
@@ -168,7 +165,7 @@ def get_dates_from_url(url, name, title):
 
                     if end_pos[0] == '-':
                         BC_state = True
-                        end_pos[1:]
+                        end_pos = end_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -178,7 +175,6 @@ def get_dates_from_url(url, name, title):
                         if state_to_write:
                             new_word += char
                     end_pos = new_word
-
 
                     end_pos = end_pos.replace('-', '.')
                     end_pos = list(reversed(end_pos.split('.')))
@@ -198,7 +194,7 @@ def get_dates_from_url(url, name, title):
                     BC_state = False
                     if start_pos[0] == '-':
                         BC_state = True
-                        start_pos[1:]
+                        start_pos = start_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -225,7 +221,7 @@ def get_dates_from_url(url, name, title):
 
                     if end_pos[0] == '-':
                         BC_state = True
-                        end_pos[1:]
+                        end_pos = end_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -248,11 +244,9 @@ def get_dates_from_url(url, name, title):
                     end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
                     title_dict[Title_ID][0][3] = str(11 - int(end_accuracy))
 
-            print(title_dict)
-            print(counter_dict)
+
 
         # ПОЛУЧЕНИЕ ЗАПРОСА ДОЛЖНОСТЕЙ КОТОРЫЕ СЕЙЧАС ПРАВЯТ
-
 
         sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
         sparql.setQuery("""SELECT ?Title ?starttimeValue ?starttimePrecision ?TitleLabel ?endtimeValue ?endtimePrecision  WHERE {
@@ -262,12 +256,12 @@ def get_dates_from_url(url, name, title):
           ?starttimenode wikibase:timeValue         ?starttimeValue.
           ?starttimenode wikibase:timePrecision     ?starttimePrecision.
           SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-    
-    
+
+
         }""" % name)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-        print(results)
+
         first_got = False
         for i in range(0, len(results['results']['bindings'])):
             if first_got:
@@ -280,7 +274,7 @@ def get_dates_from_url(url, name, title):
             BC_state = False
             if start_pos[0] == '-':
                 BC_state = True
-                start_pos[1:]
+                start_pos = start_pos[1:]
             state_to_write = False
             new_word = ''
             for char in start_pos:
@@ -294,12 +288,14 @@ def get_dates_from_url(url, name, title):
             start_pos = list(reversed(start_pos.split('.')))
             start_pos = '.'.join(start_pos)
 
+
+            # ПЕРЕДЕЛАТЬ НАДО!!!!!!
             if Title_ID in title_dict and not BC_state:
                 for j in range(0, len(title_dict[Title_ID])):
-                    print(title_dict[Title_ID][j])
+
                     if start_pos != title_dict[Title_ID][j][0]:
-                        print('Вот что нам нужно! ', start_pos, ' а было - ', Title_ID)
-                        title_dict[Title_ID].append([-1,-1,-1,-1])
+
+                        title_dict[Title_ID].append([-1, -1, -1, -1])
                         if BC_state:
                             title_dict[Title_ID][-1][0] = '-' + start_pos
                         else:
@@ -310,7 +306,9 @@ def get_dates_from_url(url, name, title):
                         title_dict[Title_ID][-1][3] = '0'
                         first_got = True
                         break
-        print(title_dict)
+            # ПЕРЕДЕЛАТЬ НАДО!!!!!!
+
+
         if title_dict != {}:
             new_data = title_dict[title]
         if title_dict == {}:
@@ -326,15 +324,50 @@ def get_dates_from_url(url, name, title):
             if not data_list:
                 data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % title)
                 data_list = get_dates(page, data_pattern)
-                print(data_list)
                 if not data_list:
                     data_pattern = re.compile(r'eign(.*?)</tr><tr>')
                     data_list = get_dates(page, data_pattern)
-
+            is_BC = False
             temp_str = data_list[0]
+
+            pattern = re.compile(r'BC')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('BC', '')
+                is_BC = True
+            pattern = re.compile(r'BCE')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('BCE', '')
+                is_BC = True
+            pattern = re.compile(r'AC')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('AC', '')
+                is_BC = True
+            pattern = re.compile(r'AD')
+            match = re.findall(pattern, temp_str)
+            if match:
+                temp_str = temp_str.replace('AD', '')
+            if is_BC:
+                pattern = re.compile(r'c\.')
+                match = re.findall(pattern, temp_str)
+                if match:
+                    temp_str = temp_str.replace('c.', '')
+
+
+
             temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
-            data_list = re.split('–', temp_str)
-            new_data = [-1,-1,-1,-1]
+            pattern = re.compile(r'–')  # РАЗНЫЕ СИМВОЛЫ, НЕ ТРОГАТЬ!!!!!
+            match = re.findall(pattern, temp_str)
+            if match:
+                data_list = re.split(pattern, temp_str)
+            else:
+                pattern = re.compile(r'-')  # РАЗНЫЕ СИМВОЛЫ, НЕ ТРОГАТЬ!!!!!
+                match = re.findall(pattern, temp_str)
+                if match:
+                    data_list = re.split(pattern, temp_str)
+            new_data = [-1, -1, -1, -1]
             n = 0
             for k in data_list:
                 k = k.replace(' ', '')
@@ -347,45 +380,49 @@ def get_dates_from_url(url, name, title):
                         new_str = re.split(' ', new_str)
                         new_str[0] = new_str[0].replace('-', '.')
                         temper_list = new_str[0].split('.')
-                        print(temper_list)
+
                         new_str[0] = temper_list[2] + '.' + temper_list[1] + '.' + temper_list[0]
-
-
-
                         new_data[n] = new_str[0]
                 if k.isdigit():
                     new_data[n] = k
                 n += 2
 
             if str(new_data[0]).isdigit():
-                new_data[0] = '1.01.' + new_data[0]
+                if is_BC:
+                    new_data[0] = '-1.01.' + new_data[0]
+                else:
+                    new_data[0] = '1.01.' + new_data[0]
                 new_data[1] = '2'
             else:
                 new_data[1] = '0'
-
 
             if new_data[2] == -1:
                 new_data[2] = 'по наст. время'
                 new_data[3] = '0'
 
-
-
-
             if new_data[2].isdigit():
-                new_data[2] = '1.01.' + new_data[2]
+                if is_BC:
+                    new_data[2] = '-1.01.' + new_data[2]
+                else:
+                    new_data[2] = '1.01.' + new_data[2]
                 new_data[3] = '2'  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
             else:
                 new_data[3] = '0'
 
-            temp = new_data
-            new_data = []
-            new_data.append(temp)
-        print(new_data)
+            for count in new_data:
+                if count == -1 or (is_BC and count == 'по наст. время'):
+                    new_data = None
+            if new_data != None:
+                temp = new_data
+                new_data = []
+                new_data.append(temp)
+            else:
+                return None
         return new_data
     except:
         None
 
-url = get_wiki_url('Q515704')
-ans = get_dates_from_url(url, 'Q515704', 'King of Thailand')
+url = get_wiki_url('Q378158')
+ans = get_dates_from_url(url, 'Q378158', 'President of Ecuador')
 
 print(ans)
