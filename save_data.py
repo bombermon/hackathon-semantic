@@ -17,7 +17,7 @@ def save_data(file_name, data):
         current_row["end_precision"] = data[i][5]
         current_row["end"] = data[i][3]
         table_rows.append(current_row.copy())
-    with open(file_name + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
+    with open(file_name + '.csv', 'a+', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
         writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
         writer.writeheader()
         writer.writerows(table_rows)

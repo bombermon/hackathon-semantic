@@ -549,20 +549,17 @@ print(head_dict)
 print(wd_url)
 
 
-new_list = []
 for i in head_dict:
-    try:
-        print(head_dict)
+    new_dict = {}
+    ans = {}
+    temp_dict = head_dict[i][1]
+
+    for j in temp_dict:
         url = get_wiki_url(i)
-        ans = get_dates_from_url(url, head_dict[i][1])
-        head_dict[i].append(ans[0])
-        head_dict[i].append(ans[1])
-        print(head_dict)
-        head_dict[i].append(ans[2])
-        head_dict[i].append(ans[3])
-        print(head_dict)
-    except:
-        None
+        ans[temp_dict.index(j)] = get_dates_from_url(url, i, j)
+    for k in range(0, len(temp_dict)):
+        new_dict[head_dict[i][0][k]] = ans[k]
+    print(new_dict)
 
 
 save_data("sample", head_dict)
