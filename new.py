@@ -310,29 +310,34 @@ def get_dates_from_url(url, name, title):
                         title_dict[Title_ID][-1][3] = '0'
                         first_got = True
                         break
-
         print(title_dict)
+        new_data = title_dict[title]
+        if title_dict == {}:
 
-        if not first_got:
             changer = page_open_body(url)
 
             soup = BeautifulSoup(changer)
             page = soup.find('table', {'class': 'infobox vcard'})
 
-            data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % name)
+            data_pattern = re.compile(r'%s</a>.*?office(.*?)</tr><tr>' % title)
             data_list = get_dates(page, data_pattern)
 
             if not data_list:
-                data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % name)
+                data_pattern = re.compile(r'%s</a>.*?eign(.*?)</tr><tr>' % title)
                 data_list = get_dates(page, data_pattern)
+                if not data_list:
+                    data_pattern = re.compile(r'eign(.*?)</tr><tr>')
+                    data_list = get_dates(page, data_pattern)
 
             temp_str = data_list[0]
             temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
             data_list = re.split('–', temp_str)
-            new_data = []
+            new_data = [-1,-1,-1,-1]
+            n = 0
             for k in data_list:
                 k = k.replace(' ', '')
-
+                if n > 3:
+                    break
                 if k.isdigit() == False:
                     matches = datefinder.find_dates(k)
                     for match in matches:
@@ -345,31 +350,40 @@ def get_dates_from_url(url, name, title):
 
 
 
-                        new_data.append(new_str[0])
+                        new_data[n] = new_str[0]
                 if k.isdigit():
-                    new_data.append(k)
+                    new_data[n] = k
+                n += 2
 
-            if len(new_data) == 1:
-                new_data.append('по наст. время')
             if str(new_data[0]).isdigit():
                 new_data[0] = '1.01.' + new_data[0]
-                new_data.append('2') # СТАВИМ ВТОРОЙ УРОВЕНЬ
-
+                new_data[1] = '2'
             else:
-                new_data.append('0')
+                new_data[1] = '0'
 
 
-            if new_data[1].isdigit():
-                new_data[1] = '1.01.' + new_data[1]
-                new_data.append('2')  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
+            if new_data[2] == -1:
+                new_data[2] = 'по наст. время'
+                new_data[3] = '0'
+
+
+
+
+            if new_data[2].isdigit():
+                new_data[2] = '1.01.' + new_data[2]
+                new_data[3] = '2'  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
             else:
-                new_data.append('0')
+                new_data[3] = '0'
 
-
-
+            temp = new_data
+            new_data = []
+            new_data.append(temp)
+        print(new_data)
         return new_data
     except:
         None
 
-url = get_wiki_url('Q7747')
-ans = get_dates_from_url(url, 'Q7747', 'President of Russia')
+url = get_wiki_url('Q22686')
+ans = get_dates_from_url(url, 'Q22686', 'President of the United States')
+
+print(ans)
