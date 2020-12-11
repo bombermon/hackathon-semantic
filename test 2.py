@@ -6,7 +6,7 @@ from fake_useragent import UserAgent
 import csv
 import datefinder
 
-wd_url = ["Q342345"]
+wd_url = ["Q57920"]
 
 def get_title(id):
     try:

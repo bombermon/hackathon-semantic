@@ -489,7 +489,7 @@ def get_positions_id_and_name_list(id, step=0):
         ruler_positions_name_list = []
         positions_held = get_title(id)
         if positions_held == None:
-            return None
+            return None, None
         for i in positions_held['results']['bindings']:
             current_position_link = i['item']['value']
             current_position_id = re.split('/', current_position_link)[-1]
@@ -500,7 +500,7 @@ def get_positions_id_and_name_list(id, step=0):
                 ruler_positions_name_list.append(current_position_name)
                 continue
             if not_needed_positions.get(current_position_id):
-                return
+                return None, None
             current_position_subclass_id = get_positions_id_and_name_list(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
