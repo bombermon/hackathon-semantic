@@ -500,7 +500,7 @@ def get_positions_id_and_name_list(id, step=0):
                 ruler_positions_name_list.append(current_position_name)
                 continue
             if not_needed_positions.get(current_position_id):
-                return None, None
+                continue
             current_position_subclass_id = get_positions_id_and_name_list(current_position_id, step + 1)
             if needed_positions.get(current_position_id) or current_position_subclass_id != None:
                 needed_positions[current_position_id] = True
