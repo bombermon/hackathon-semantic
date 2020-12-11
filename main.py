@@ -544,6 +544,9 @@ for i in wd_url:
 
 headers_dict = {}
 
+print(head_dict)
+print(wd_url)
+
 
 new_list = []
 for i in head_dict:

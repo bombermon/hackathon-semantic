@@ -113,3 +113,5 @@ for i in wd_url:
         head_dict[i] = []
         head_dict[i].append(positions_id_list)
         head_dict[i].append(positions_name_list)
+
+print(head_dict)
