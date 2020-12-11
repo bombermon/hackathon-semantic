@@ -1,5 +1,13 @@
-a = [['2000-01-25', '0', '2003-01-29', '0'], ['2017-01-01', '0', '2017-12-31', '0'], ['2004-09-16', '0', '2006-05-20', '0']]
 
-b = '0' in a[0]
+start_pos = '000000912.01.01'
 
-print(b)
+state_to_write = False
+new_word = ''
+for char in start_pos:
+    if char != '0':
+        state_to_write = True
+    if state_to_write:
+        new_word += char
+    print(new_word)
+start_pos = new_word
+
