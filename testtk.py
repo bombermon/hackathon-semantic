@@ -498,6 +498,8 @@ head_dict = {'Q7747': [['Q10962705'], ['President of Russia']], 'Q515704': [['Q2
 
 
 new_list = []
+table_rows = []
+temp_row = {"person": '', "position": '', "start_precision": '', "start": '', "end_precision": '', "end": ''}
 for i in head_dict:
     new_dict = {}
     ans = {}
@@ -508,8 +510,18 @@ for i in head_dict:
         ans[temp_dict.index(j)] = get_dates_from_url(url, i, j)
     for k in range(0, len(temp_dict)):
         new_dict[head_dict[i][0][k]] = ans[k]
+        current_row = temp_row
+        current_row["person"] = "https://www.wikidata.org/wiki/" + i
+        current_row["position"] = "https://www.wikidata.org/wiki/" + head_dict[i][0][k]
+        for l in ans[k]:
+            current_row["start_precision"] = l[1]
+            current_row["start"] = l[0]
+            current_row["end_precision"] = l[3]
+            current_row["end"] = l[2]
+            table_rows.append(current_row.copy())
     print(new_dict)
 
-
-save_data("sample", head_dict)
-
+with open("Alt+F4_results" + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
+    writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
+    writer.writeheader()
+    writer.writerows(table_rows)
