@@ -5,9 +5,11 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from fake_useragent import UserAgent
 import csv
 import datefinder
+
 '''
 Берем значит ссылку и через семантик веб анализируем человек это или не человек имя это или не имя 
 '''
+
 
 def get_wiki_url(wikidata_id, lang='en', debug=False):
     import requests
@@ -244,8 +246,6 @@ def get_dates_from_url(url, name, title):
                     end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
                     title_dict[Title_ID][0][3] = str(11 - int(end_accuracy))
 
-
-
         # ПОЛУЧЕНИЕ ЗАПРОСА ДОЛЖНОСТЕЙ КОТОРЫЕ СЕЙЧАС ПРАВЯТ
 
         sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
@@ -261,7 +261,7 @@ def get_dates_from_url(url, name, title):
         }""" % name)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-
+        print(title_dict)
         first_got = False
         for i in range(0, len(results['results']['bindings'])):
             if first_got:
@@ -288,27 +288,24 @@ def get_dates_from_url(url, name, title):
             start_pos = list(reversed(start_pos.split('.')))
             start_pos = '.'.join(start_pos)
 
-            # ПЕРЕДЕЛАТЬ НАДО!!!!!!
-
             if Title_ID in title_dict and not BC_state:
+                start_time_have_found = False
                 for j in range(0, len(title_dict[Title_ID])):
 
-                    if start_pos != title_dict[Title_ID][j][0]:
-
-                        title_dict[Title_ID].append([-1, -1, -1, -1])
-                        if BC_state:
-                            title_dict[Title_ID][-1][0] = '-' + start_pos
-                        else:
-                            title_dict[Title_ID][-1][0] = start_pos
-                        start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
-                        title_dict[Title_ID][-1][1] = str(11 - int(start_accuracy))
-                        title_dict[Title_ID][-1][2] = 'по наст. время'
-                        title_dict[Title_ID][-1][3] = '0'
-                        first_got = True
+                    if start_pos == title_dict[Title_ID][j][0]:
+                        start_time_have_found = True
                         break
-
-            # ПЕРЕДЕЛАТЬ НАДО!!!!!!
-
+                if not start_time_have_found:
+                    title_dict[Title_ID].append([-1, -1, -1, -1])
+                    if BC_state:
+                        title_dict[Title_ID][-1][0] = '-' + start_pos
+                    else:
+                        title_dict[Title_ID][-1][0] = start_pos
+                    start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
+                    title_dict[Title_ID][-1][1] = str(11 - int(start_accuracy))
+                    title_dict[Title_ID][-1][2] = 'по наст. время'
+                    title_dict[Title_ID][-1][3] = '0'
+                    first_got = True
 
         if title_dict != {}:
             new_data = title_dict[title]
@@ -355,8 +352,6 @@ def get_dates_from_url(url, name, title):
                 match = re.findall(pattern, temp_str)
                 if match:
                     temp_str = temp_str.replace('c.', '')
-
-
 
             temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
             pattern = re.compile(r'–')  # РАЗНЫЕ СИМВОЛЫ, НЕ ТРОГАТЬ!!!!!
@@ -442,7 +437,6 @@ def get_title(id):
         return None
 
 
-
 def get_subclass(id):
     try:
         sparql = SPARQLWrapper("http://query.wikidata.org/sparql", agent=UserAgent().random)
@@ -468,8 +462,10 @@ def ruller_cheeck(position_name):
         return True
     return False
 
+
 not_needed_positions = {}
 needed_positions = {}
+
 
 def get_positions_id_and_name_list(id, step=0):
     if step == 0:
@@ -520,13 +516,14 @@ def get_positions_id_and_name_list(id, step=0):
             not_needed_positions[current_position_id] = True
         return None
 
+
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
 wd_url = []
 heads_of_goverment_set = set()
 for x in range(1900, 1911, 10):
 
     main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
-    #main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
+    # main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
     pattern = re.compile(r'href="/wiki/(.*?)"')
     searcher = re.findall(pattern, main_elem)
 
@@ -565,8 +562,6 @@ for x in range(1900, 1911, 10):
 
 print('hello')
 
-
-
 head_dict = {}
 for i in wd_url:
     positions_id_list, positions_name_list = get_positions_id_and_name_list(i)
@@ -575,9 +570,6 @@ for i in wd_url:
         head_dict[i] = []
         head_dict[i].append(positions_id_list)
         head_dict[i].append(positions_name_list)
-
-
-
 
 print(head_dict)
 new_list = []
@@ -609,7 +601,8 @@ for i in head_dict:
             None
     print(new_dict)
 
-with open("Alt+F4_results" + '.csv', 'w', encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
-    writer = csv.DictWriter(csv_file, fieldnames = temp_row.keys())
+with open("Alt+F4_results" + '.csv', 'w',
+          encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
+    writer = csv.DictWriter(csv_file, fieldnames=temp_row.keys())
     writer.writeheader()
     writer.writerows(table_rows)

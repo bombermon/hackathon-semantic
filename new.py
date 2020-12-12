@@ -426,6 +426,6 @@ def get_dates_from_url(url, name, title):
 
 
 url = get_wiki_url('Q378158')
-ans = get_dates_from_url(url, 'Q7747', 'President of Russia')
+ans = get_dates_from_url(url, 'Q887497', 'President of Chile')
 
 print(ans)
