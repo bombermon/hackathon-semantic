@@ -261,7 +261,7 @@ def get_dates_from_url(url, name, title):
         }""" % name)
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
-
+        print(title_dict)
         first_got = False
         for i in range(0, len(results['results']['bindings'])):
             if first_got:
@@ -291,22 +291,23 @@ def get_dates_from_url(url, name, title):
             # ПЕРЕДЕЛАТЬ НАДО!!!!!!
 
             if Title_ID in title_dict and not BC_state:
+                start_time_have_found = False
                 for j in range(0, len(title_dict[Title_ID])):
 
-                    if start_pos != title_dict[Title_ID][j][0]:
-
-                        title_dict[Title_ID].append([-1, -1, -1, -1])
-                        if BC_state:
-                            title_dict[Title_ID][-1][0] = '-' + start_pos
-                        else:
-                            title_dict[Title_ID][-1][0] = start_pos
-                        start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
-                        title_dict[Title_ID][-1][1] = str(11 - int(start_accuracy))
-                        title_dict[Title_ID][-1][2] = 'по наст. время'
-                        title_dict[Title_ID][-1][3] = '0'
-                        first_got = True
+                    if start_pos == title_dict[Title_ID][j][0]:
+                        start_time_have_found = True
                         break
-
+                if not start_time_have_found:
+                    title_dict[Title_ID].append([-1, -1, -1, -1])
+                    if BC_state:
+                        title_dict[Title_ID][-1][0] = '-' + start_pos
+                    else:
+                        title_dict[Title_ID][-1][0] = start_pos
+                    start_accuracy = results['results']['bindings'][i]['starttimePrecision']['value']
+                    title_dict[Title_ID][-1][1] = str(11 - int(start_accuracy))
+                    title_dict[Title_ID][-1][2] = 'по наст. время'
+                    title_dict[Title_ID][-1][3] = '0'
+                    first_got = True
             # ПЕРЕДЕЛАТЬ НАДО!!!!!!
 
 
@@ -425,6 +426,6 @@ def get_dates_from_url(url, name, title):
 
 
 url = get_wiki_url('Q378158')
-ans = get_dates_from_url(url, 'Q378158', 'President of Ecuador')
+ans = get_dates_from_url(url, 'Q7747', 'President of Russia')
 
 print(ans)
