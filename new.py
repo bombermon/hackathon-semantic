@@ -52,7 +52,7 @@ def page_open_body(name):
     return main_part
 
 
-# ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
+
 # ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ НАЧАЛО
 def get_dates_from_url(url, name, title):
     try:
@@ -288,8 +288,8 @@ def get_dates_from_url(url, name, title):
             start_pos = list(reversed(start_pos.split('.')))
             start_pos = '.'.join(start_pos)
 
-
             # ПЕРЕДЕЛАТЬ НАДО!!!!!!
+
             if Title_ID in title_dict and not BC_state:
                 for j in range(0, len(title_dict[Title_ID])):
 
@@ -306,6 +306,7 @@ def get_dates_from_url(url, name, title):
                         title_dict[Title_ID][-1][3] = '0'
                         first_got = True
                         break
+
             # ПЕРЕДЕЛАТЬ НАДО!!!!!!
 
 
@@ -421,6 +422,7 @@ def get_dates_from_url(url, name, title):
         return new_data
     except:
         None
+
 
 url = get_wiki_url('Q378158')
 ans = get_dates_from_url(url, 'Q378158', 'President of Ecuador')
