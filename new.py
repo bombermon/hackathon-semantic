@@ -137,7 +137,7 @@ def get_dates_from_url(url, name, title):
                     BC_state = False
                     if start_pos[0] == '-':
                         BC_state = True
-                        start_pos[1:]
+                        start_pos = start_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -146,7 +146,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    start_pos = new_word
+                    if new_word[0] == '-':
+                        start_pos = '0' + new_word
+                    else:
+                        start_pos = new_word
 
                     start_pos = start_pos.replace('-', '.')
                     start_pos = list(reversed(start_pos.split('.')))
@@ -174,7 +177,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    end_pos = new_word
+                    if new_word[0] == '-':
+                        end_pos = '0' + new_word
+                    else:
+                        end_pos = new_word
 
                     end_pos = end_pos.replace('-', '.')
                     end_pos = list(reversed(end_pos.split('.')))
@@ -203,7 +209,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    start_pos = new_word
+                    if new_word[0] == '-':
+                        start_pos = '0' + new_word
+                    else:
+                        start_pos = new_word
 
                     start_pos = start_pos.replace('-', '.')
                     start_pos = list(reversed(start_pos.split('.')))
@@ -230,7 +239,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    end_pos = new_word
+                    if new_word[0] == '-':
+                        end_pos = '0' + new_word
+                    else:
+                        end_pos = new_word
 
                     end_pos = end_pos.replace('-', '.')
                     end_pos = list(reversed(end_pos.split('.')))
@@ -282,7 +294,10 @@ def get_dates_from_url(url, name, title):
                     state_to_write = True
                 if state_to_write:
                     new_word += char
-            start_pos = new_word
+            if new_word[0] == '-':
+                start_pos = '0' + new_word
+            else:
+                start_pos = new_word
 
             start_pos = start_pos.replace('-', '.')
             start_pos = list(reversed(start_pos.split('.')))
@@ -391,7 +406,7 @@ def get_dates_from_url(url, name, title):
 
             if str(new_data[0]).isdigit():
                 if is_BC:
-                    new_data[0] = '-1.01.' + new_data[0]
+                    new_data[0] = '-10.01.' + new_data[0]
                 else:
                     new_data[0] = '1.01.' + new_data[0]
                 new_data[1] = '2'
@@ -404,7 +419,7 @@ def get_dates_from_url(url, name, title):
 
             if new_data[2].isdigit():
                 if is_BC:
-                    new_data[2] = '-1.01.' + new_data[2]
+                    new_data[2] = '-01.01.' + new_data[2]
                 else:
                     new_data[2] = '1.01.' + new_data[2]
                 new_data[3] = '2'  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
@@ -425,7 +440,8 @@ def get_dates_from_url(url, name, title):
         None
 
 
-url = get_wiki_url('Q378158')
-ans = get_dates_from_url(url, 'Q887497', 'President of Chile')
+
+url = get_wiki_url('Q1282306')
+ans = get_dates_from_url(url, 'Q1282306', 'King of Iberia')
 
 print(ans)

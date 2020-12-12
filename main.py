@@ -139,7 +139,7 @@ def get_dates_from_url(url, name, title):
                     BC_state = False
                     if start_pos[0] == '-':
                         BC_state = True
-                        start_pos[1:]
+                        start_pos = start_pos[1:]
 
                     state_to_write = False
                     new_word = ''
@@ -148,7 +148,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    start_pos = new_word
+                    if new_word[0] == '-':
+                        start_pos = '0' + new_word
+                    else:
+                        start_pos = new_word
 
                     start_pos = start_pos.replace('-', '.')
                     start_pos = list(reversed(start_pos.split('.')))
@@ -176,7 +179,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    end_pos = new_word
+                    if new_word[0] == '-':
+                        end_pos = '0' + new_word
+                    else:
+                        end_pos = new_word
 
                     end_pos = end_pos.replace('-', '.')
                     end_pos = list(reversed(end_pos.split('.')))
@@ -205,7 +211,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    start_pos = new_word
+                    if new_word[0] == '-':
+                        start_pos = '0' + new_word
+                    else:
+                        start_pos = new_word
 
                     start_pos = start_pos.replace('-', '.')
                     start_pos = list(reversed(start_pos.split('.')))
@@ -232,7 +241,10 @@ def get_dates_from_url(url, name, title):
                             state_to_write = True
                         if state_to_write:
                             new_word += char
-                    end_pos = new_word
+                    if new_word[0] == '-':
+                        end_pos = '0' + new_word
+                    else:
+                        end_pos = new_word
 
                     end_pos = end_pos.replace('-', '.')
                     end_pos = list(reversed(end_pos.split('.')))
@@ -245,6 +257,8 @@ def get_dates_from_url(url, name, title):
 
                     end_accuracy = results['results']['bindings'][i]['endtimePrecision']['value']
                     title_dict[Title_ID][0][3] = str(11 - int(end_accuracy))
+
+
 
         # ПОЛУЧЕНИЕ ЗАПРОСА ДОЛЖНОСТЕЙ КОТОРЫЕ СЕЙЧАС ПРАВЯТ
 
@@ -282,11 +296,16 @@ def get_dates_from_url(url, name, title):
                     state_to_write = True
                 if state_to_write:
                     new_word += char
-            start_pos = new_word
+            if new_word[0] == '-':
+                start_pos = '0' + new_word
+            else:
+                start_pos = new_word
 
             start_pos = start_pos.replace('-', '.')
             start_pos = list(reversed(start_pos.split('.')))
             start_pos = '.'.join(start_pos)
+
+
 
             if Title_ID in title_dict and not BC_state:
                 start_time_have_found = False
@@ -306,6 +325,8 @@ def get_dates_from_url(url, name, title):
                     title_dict[Title_ID][-1][2] = 'по наст. время'
                     title_dict[Title_ID][-1][3] = '0'
                     first_got = True
+
+
 
         if title_dict != {}:
             new_data = title_dict[title]
@@ -353,6 +374,8 @@ def get_dates_from_url(url, name, title):
                 if match:
                     temp_str = temp_str.replace('c.', '')
 
+
+
             temp_str = re.sub(r"[#%!@*,.;]", "", temp_str)
             pattern = re.compile(r'–')  # РАЗНЫЕ СИМВОЛЫ, НЕ ТРОГАТЬ!!!!!
             match = re.findall(pattern, temp_str)
@@ -385,7 +408,7 @@ def get_dates_from_url(url, name, title):
 
             if str(new_data[0]).isdigit():
                 if is_BC:
-                    new_data[0] = '-1.01.' + new_data[0]
+                    new_data[0] = '-01.01.' + new_data[0]
                 else:
                     new_data[0] = '1.01.' + new_data[0]
                 new_data[1] = '2'
@@ -398,7 +421,7 @@ def get_dates_from_url(url, name, title):
 
             if new_data[2].isdigit():
                 if is_BC:
-                    new_data[2] = '-1.01.' + new_data[2]
+                    new_data[2] = '-01.01.' + new_data[2]
                 else:
                     new_data[2] = '1.01.' + new_data[2]
                 new_data[3] = '2'  # СТАВИМ ПЕРВЫЙ УРОВЕНЬ
@@ -417,6 +440,7 @@ def get_dates_from_url(url, name, title):
         return new_data
     except:
         None
+
 
 
 def get_title(id):
@@ -517,13 +541,13 @@ def get_positions_id_and_name_list(id, step=0):
         return None
 
 
-# ФУНКЦИЯ ПОЛУЧЕНИЯ ДАТЫ КОНЕЦ
+# НАЧАЛО ГЛАВНОГО КОДА ----------------------------------------------------------------------------------------------
 wd_url = []
 heads_of_goverment_set = set()
-for x in range(1900, 1911, 10):
+for x in range(1900, 1901):
 
-    main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
-    # main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
+    #main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
+    main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
     pattern = re.compile(r'href="/wiki/(.*?)"')
     searcher = re.findall(pattern, main_elem)
 
@@ -601,7 +625,7 @@ for i in head_dict:
             None
     print(new_dict)
 
-with open("Alt+F4_results" + '.csv', 'w',
+with open("Alt+F4_results143141" + '.csv', 'w',
           encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
     writer = csv.DictWriter(csv_file, fieldnames=temp_row.keys())
     writer.writeheader()
