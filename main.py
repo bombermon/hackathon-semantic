@@ -544,10 +544,10 @@ def get_positions_id_and_name_list(id, step=0):
 # НАЧАЛО ГЛАВНОГО КОДА ----------------------------------------------------------------------------------------------
 wd_url = []
 heads_of_goverment_set = set()
-for x in range(1900, 1901):
+for x in range(1991, 2020, 7):
 
-    #main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
-    main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
+    main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
+    #main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the_1st_century_BC')
     pattern = re.compile(r'href="/wiki/(.*?)"')
     searcher = re.findall(pattern, main_elem)
 
@@ -625,7 +625,7 @@ for i in head_dict:
             None
     print(new_dict)
 
-with open("Alt+F4_results143141" + '.csv', 'w',
+with open("Alt+F4_results143141NEW2" + '.csv', 'w',
           encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
     writer = csv.DictWriter(csv_file, fieldnames=temp_row.keys())
     writer.writeheader()
