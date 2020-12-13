@@ -550,12 +550,12 @@ urls = ['https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States',
 # НАЧАЛО ГЛАВНОГО КОДА ----------------------------------------------------------------------------------------------
 wd_url = []
 heads_of_goverment_set = set()
-#for x in range(4, 7):
-for x in urls:
+for x in range(1500, 1751, 50):
+#for x in urls:
 
-    #main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
+    main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
     #main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the %sth_century_BC' % x)
-    main_elem = page_open_body(x)
+    #main_elem = page_open_body(x)
 
     pattern = re.compile(r'href="/wiki/(.*?)"')
     searcher = re.findall(pattern, main_elem)
@@ -634,7 +634,7 @@ for i in head_dict:
             None
     print(new_dict)
 
-with open("Alt+F4_results" + '.csv', 'a+',
+with open("Alt+F4_results" + '.csv', 'w',
           encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
     writer = csv.DictWriter(csv_file, fieldnames=temp_row.keys())
     writer.writeheader()
