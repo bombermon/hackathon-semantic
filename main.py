@@ -480,7 +480,7 @@ def get_subclass(id):
 
 
 def ruller_cheeck(position_name):
-    header_pattern = re.compile(r'head of state|ruler')
+    header_pattern = re.compile(r'head of state|ruler|khan')
     match = re.match(header_pattern, position_name)
     if match:
         return True
@@ -540,14 +540,23 @@ def get_positions_id_and_name_list(id, step=0):
             not_needed_positions[current_position_id] = True
         return None
 
-
+urls = ['https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States', 'https://en.wikipedia.org/wiki/List_of_leaders_of_Russia',
+        'https://en.wikipedia.org/wiki/List_of_rulers_of_Belarus', 'https://en.wikipedia.org/wiki/List_of_prime_ministers_of_the_United_Kingdom',
+        'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Germany', 'https://en.wikipedia.org/wiki/List_of_Khans_of_the_Golden_Horde',
+        'https://en.wikipedia.org/wiki/List_of_leaders_of_Kazakhstan', 'https://en.wikipedia.org/wiki/List_of_leaders_of_Ukraine',
+        'https://en.wikipedia.org/wiki/List_of_prime_ministers_of_Canada', 'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Poland',
+        'https://en.wikipedia.org/wiki/List_of_presidents_of_Turkey', 'https://en.wikipedia.org/wiki/List_of_emperors_of_Japan',
+        'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Spain', 'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Italy']
 # НАЧАЛО ГЛАВНОГО КОДА ----------------------------------------------------------------------------------------------
 wd_url = []
 heads_of_goverment_set = set()
-for x in range(4, 7):
+#for x in range(4, 7):
+for x in urls:
 
     #main_elem = page_open_body("https://en.wikipedia.org/wiki/List_of_state_leaders_in_%s" % x)
-    main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the %sth_century_BC' % x)
+    #main_elem = page_open_body('https://en.wikipedia.org/wiki/List_of_state_leaders_in_the %sth_century_BC' % x)
+    main_elem = page_open_body(x)
+
     pattern = re.compile(r'href="/wiki/(.*?)"')
     searcher = re.findall(pattern, main_elem)
 
@@ -581,7 +590,7 @@ for x in range(4, 7):
                 wd_url.append(searcher[0])
                 n += 1
                 print(wd_url)
-        except IndexError:
+        except :
             None
 
 print('hello')
@@ -625,7 +634,7 @@ for i in head_dict:
             None
     print(new_dict)
 
-with open("Alt+F4_results" + '.csv', 'w',
+with open("Alt+F4_results" + '.csv', 'a+',
           encoding='UTF-8') as csv_file:  # ОТКРЫВАЕМ (ИЛИ СОЗДАЕМ ФАЙЛ CSV НА ЗАПИСЬ СЛОВАРЯ)
     writer = csv.DictWriter(csv_file, fieldnames=temp_row.keys())
     writer.writeheader()
