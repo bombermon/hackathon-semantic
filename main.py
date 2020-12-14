@@ -540,13 +540,20 @@ def get_positions_id_and_name_list(id, step=0):
             not_needed_positions[current_position_id] = True
         return None
 
-urls = ['https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States', 'https://en.wikipedia.org/wiki/List_of_leaders_of_Russia',
-        'https://en.wikipedia.org/wiki/List_of_rulers_of_Belarus', 'https://en.wikipedia.org/wiki/List_of_prime_ministers_of_the_United_Kingdom',
-        'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Germany', 'https://en.wikipedia.org/wiki/List_of_Khans_of_the_Golden_Horde',
-        'https://en.wikipedia.org/wiki/List_of_leaders_of_Kazakhstan', 'https://en.wikipedia.org/wiki/List_of_leaders_of_Ukraine',
-        'https://en.wikipedia.org/wiki/List_of_prime_ministers_of_Canada', 'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Poland',
-        'https://en.wikipedia.org/wiki/List_of_presidents_of_Turkey', 'https://en.wikipedia.org/wiki/List_of_emperors_of_Japan',
-        'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Spain', 'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Italy']
+urls = ['https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States', 'https://en.wikipedia.org/wiki'
+                                                                                 '/List_of_leaders_of_Russia',
+        'https://en.wikipedia.org/wiki/List_of_rulers_of_Belarus', 'https://en.wikipedia.org/wiki'
+                                                                   '/List_of_prime_ministers_of_the_United_Kingdom',
+        'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Germany', 'https://en.wikipedia.org/wiki'
+                                                                           '/List_of_Khans_of_the_Golden_Horde',
+        'https://en.wikipedia.org/wiki/List_of_leaders_of_Kazakhstan', 'https://en.wikipedia.org/wiki'
+                                                                       '/List_of_leaders_of_Ukraine',
+        'https://en.wikipedia.org/wiki/List_of_prime_ministers_of_Canada', 'https://en.wikipedia.org/wiki'
+                                                                           '/List_of_heads_of_state_of_Poland',
+        'https://en.wikipedia.org/wiki/List_of_presidents_of_Turkey', 'https://en.wikipedia.org/wiki'
+                                                                      '/List_of_emperors_of_Japan',
+        'https://en.wikipedia.org/wiki/List_of_heads_of_state_of_Spain', 'https://en.wikipedia.org/wiki'
+                                                                         '/List_of_heads_of_state_of_Italy']
 # НАЧАЛО ГЛАВНОГО КОДА ----------------------------------------------------------------------------------------------
 wd_url = []
 heads_of_goverment_set = set()
